@@ -1,0 +1,372 @@
+/* AWS Brand Colors and Fonts */
+:root {
+    --aws-orange: #FF9900;
+    --aws-dark-blue: #232F3E;
+    --aws-light-blue: #4B9CD3;
+    --aws-gray: #687078;
+    --aws-light-gray: #F2F3F3;
+    --aws-white: #FFFFFF;
+    --aws-success: #1B660F;
+    --aws-warning: #FF9900;
+    --aws-error: #D13212;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Amazon Ember', 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--aws-dark-blue);
+    background-color: var(--aws-white);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, var(--aws-dark-blue) 0%, var(--aws-gray) 100%);
+    color: var(--aws-white);
+    padding: 2rem 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header .container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.aws-logo {
+    flex-shrink: 0;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Main Content */
+main {
+    padding: 2rem 0;
+}
+
+section {
+    margin-bottom: 3rem;
+}
+
+/* Welcome Section */
+.welcome-card {
+    background: linear-gradient(135deg, var(--aws-light-gray) 0%, var(--aws-white) 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--aws-orange);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.welcome-card h2 {
+    color: var(--aws-dark-blue);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.welcome-card p {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    color: var(--aws-gray);
+}
+
+.location-info {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.info-item {
+    padding: 1rem;
+    background: var(--aws-white);
+    border-radius: 8px;
+    border: 1px solid #E1E4E8;
+}
+
+/* Agenda Section */
+.agenda h2 {
+    color: var(--aws-dark-blue);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.agenda-note {
+    background: #FFF3CD;
+    border: 1px solid #FFEAA7;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.agenda-note p {
+    color: #856404;
+    margin: 0;
+}
+
+.calendar-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.day-column {
+    background: var(--aws-white);
+    border: 1px solid #E1E4E8;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.day-column h3 {
+    color: var(--aws-dark-blue);
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--aws-orange);
+}
+
+.time-slot {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--aws-light-gray);
+    border-radius: 8px;
+    border-left: 3px solid var(--aws-light-blue);
+}
+
+.time {
+    font-weight: 600;
+    color: var(--aws-dark-blue);
+    min-width: 120px;
+    font-size: 0.9rem;
+}
+
+.session {
+    flex: 1;
+}
+
+.session h4 {
+    color: var(--aws-dark-blue);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.session p {
+    color: var(--aws-gray);
+    font-size: 0.9rem;
+}
+
+/* Participants Section */
+.participants h2 {
+    color: var(--aws-dark-blue);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.table-container {
+    background: var(--aws-white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: var(--aws-dark-blue);
+    color: var(--aws-white);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 500;
+}
+
+td {
+    padding: 1rem;
+    border-bottom: 1px solid #E1E4E8;
+}
+
+tr:hover {
+    background: var(--aws-light-gray);
+}
+
+.editable {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.editable:hover {
+    background: #E3F2FD;
+}
+
+.editable:focus {
+    outline: 2px solid var(--aws-light-blue);
+    background: var(--aws-white);
+}
+
+.delete-btn {
+    background: var(--aws-error);
+    color: var(--aws-white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.delete-btn:hover {
+    background: #B71C1C;
+}
+
+.add-btn {
+    background: var(--aws-orange);
+    color: var(--aws-white);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 1rem;
+    transition: background-color 0.2s;
+}
+
+.add-btn:hover {
+    background: #E68900;
+}
+
+/* Barcelona Info Section */
+.barcelona-info h2 {
+    color: var(--aws-dark-blue);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-card {
+    background: var(--aws-white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #E1E4E8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.info-card h3 {
+    color: var(--aws-dark-blue);
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.info-card p {
+    color: var(--aws-gray);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.info-card strong {
+    color: var(--aws-dark-blue);
+}
+
+/* Footer */
+.footer {
+    background: var(--aws-dark-blue);
+    color: var(--aws-white);
+    padding: 2rem 0;
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.footer p {
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .header .container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .calendar-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .time-slot {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .time {
+        min-width: auto;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    table {
+        font-size: 0.9rem;
+    }
+    
+    th, td {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .welcome-card {
+        padding: 1.5rem;
+    }
+    
+    .day-column {
+        padding: 1rem;
+    }
+    
+    .info-card {
+        padding: 1rem;
+    }
+}
