@@ -560,9 +560,10 @@ tr:hover {
 .schedule-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9em;
+    font-size: 0.85em;
     background: white;
-    min-width: 800px;
+    min-width: 900px;
+    table-layout: fixed;
 }
 
 .schedule-table thead {
@@ -578,8 +579,12 @@ tr:hover {
 }
 
 .schedule-table th:first-child {
-    width: 100px;
+    width: 90px;
     background: #FF9900;
+}
+
+.schedule-table th:not(:first-child) {
+    width: calc((100% - 90px) / 4);
 }
 
 .schedule-table th:last-child {
@@ -692,4 +697,195 @@ tr:hover {
 
 .time-cell[contenteditable="true"]:focus {
     background-color: rgba(255, 153, 0, 0.2);
+}
+/* Activity Management Controls */
+.activity-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    background: #FF9900;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn:hover {
+    background: #e6890a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #FF9900;
+}
+
+.modal-content h3 {
+    color: #232F3E;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Color Options */
+.color-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.color-option {
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.color-option:hover {
+    transform: scale(1.05);
+    border-color: #232F3E;
+}
+
+.color-option.selected {
+    border-color: #FF9900;
+    box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.3);
+}
+
+/* Additional Activity Colors */
+.time-slot.workshop {
+    background: #e2e3f0;
+    border-left-color: #6f42c1;
+}
+
+.time-slot.presentation {
+    background: #fff0f6;
+    border-left-color: #e83e8c;
+}
+
+.time-slot.networking {
+    background: #e8f4f8;
+    border-left-color: #20c997;
+}
+
+.session-cell.workshop {
+    background: #e2e3f0;
+    border-left: 4px solid #6f42c1;
+}
+
+.session-cell.presentation {
+    background: #fff0f6;
+    border-left: 4px solid #e83e8c;
+}
+
+.session-cell.networking {
+    background: #e8f4f8;
+    border-left: 4px solid #20c997;
+}
+
+/* Delete Mode Styling */
+.delete-mode .time-slot {
+    cursor: pointer;
+    position: relative;
+}
+
+.delete-mode .time-slot:hover {
+    background-color: #f8d7da !important;
+    border-left-color: #dc3545 !important;
+}
+
+.delete-mode .time-slot:hover::after {
+    content: "🗑️ Click to delete";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    z-index: 10;
+}
+
+/* Dietary Restrictions Highlighting */
+.editable:contains("Vegetarian") {
+    background-color: #d4edda;
+}
+
+.editable:contains("Gluten-free") {
+    background-color: #fff3cd;
+}
+
+.editable:contains("Kosher") {
+    background-color: #d1ecf1;
+}
+
+/* Mobile Responsiveness for Controls */
+@media (max-width: 768px) {
+    .activity-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .control-btn {
+        width: 200px;
+        margin: 5px 0;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 20px;
+    }
+    
+    .color-options {
+        grid-template-columns: 1fr;
+    }
 }

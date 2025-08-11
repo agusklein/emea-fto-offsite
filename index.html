@@ -14,9 +14,9 @@
                 <div class="logo-container">
                     <span class="amazon-text">amazon</span>
                     <div class="aws-smile">
-                        <svg width="80" height="16" viewBox="0 0 80 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M25 12c-6.5 0-12-2.5-16-6.5l1-1c3.5 3.5 8.5 5.5 15 5.5s11.5-2 15-5.5l1 1c-4 4-9.5 6.5-16 6.5z" fill="#FF9900"/>
-                            <path d="M38 9l2.5-1.5L38 6v3z" fill="#FF9900"/>
+                        <svg width="62" height="18" viewBox="0 0 62 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20.7 13.4c-5.4 0-10.1-2-13.6-5.3-.4-.3-.1-.8.4-.5 3.6 2.1 8.1 3.4 12.7 3.4 3.1 0 6.5-.6 9.6-1.9.5-.2.9.3.4.8-2.1 1.8-4.7 3.2-10.1 3.2l.6.3z" fill="#FF9900"/>
+                            <path d="M22.1 11.8c-.7-.9-.4-2.1.3-2.9.2-.3.5-.1.5.2-.1 1 .3 1.6.9 2.1.2.2.1.5-.2.5-.5.1-1-.3-1.5-.9z" fill="#FF9900"/>
                         </svg>
                     </div>
                     <span class="aws-text">web services</span>
@@ -44,6 +44,31 @@
 
         <section class="agenda">
             <h2 contenteditable="true" class="editable-title">📅 Offsite Agenda</h2>
+            
+            <!-- Activity Management Controls -->
+            <div class="activity-controls">
+                <button id="add-activity-btn" class="control-btn">➕ Add New Activity</button>
+                <button id="color-picker-btn" class="control-btn">🎨 Change Colors</button>
+                <button id="delete-mode-btn" class="control-btn">🗑️ Delete Mode</button>
+            </div>
+            
+            <!-- Color Picker Modal -->
+            <div id="color-picker-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Choose Activity Color</h3>
+                    <div class="color-options">
+                        <div class="color-option" data-color="default" style="background: #f8f9fa; border-left: 4px solid #FF9900;">Default</div>
+                        <div class="color-option" data-color="lunch" style="background: #fff3cd; border-left: 4px solid #ffc107;">Lunch</div>
+                        <div class="color-option" data-color="dinner" style="background: #d1ecf1; border-left: 4px solid #17a2b8;">Dinner</div>
+                        <div class="color-option" data-color="arrival" style="background: #d4edda; border-left: 4px solid #28a745;">Arrival</div>
+                        <div class="color-option" data-color="break" style="background: #f8d7da; border-left: 4px solid #dc3545;">Break</div>
+                        <div class="color-option" data-color="workshop" style="background: #e2e3f0; border-left: 4px solid #6f42c1;">Workshop</div>
+                        <div class="color-option" data-color="presentation" style="background: #fff0f6; border-left: 4px solid #e83e8c;">Presentation</div>
+                        <div class="color-option" data-color="networking" style="background: #e8f4f8; border-left: 4px solid #20c997;">Networking</div>
+                    </div>
+                </div>
+            </div>
             
             <div class="calendar-grid">
                 <div class="day-card">
@@ -379,7 +404,7 @@
                     <tbody>
                         <tr>
                             <td contenteditable="true" class="editable">Marta</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">None</td>
                             <td contenteditable="true" class="editable">Click to edit</td>
                             <td contenteditable="true" class="editable">Click to edit</td>
                             <td contenteditable="true" class="editable">Click to edit</td>
@@ -387,12 +412,69 @@
                         </tr>
                         <tr>
                             <td contenteditable="true" class="editable">Agus</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">None</td>
                             <td contenteditable="true" class="editable">Click to edit</td>
                             <td contenteditable="true" class="editable">Click to edit</td>
                             <td contenteditable="true" class="editable">Click to edit</td>
                             <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
                         </tr>
+                        <tr>
+                            <td contenteditable="true" class="editable">Erin</td>
+                            <td contenteditable="true" class="editable">Vegetarian</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true" class="editable">Emmanuele</td>
+                            <td contenteditable="true" class="editable">None</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true" class="editable">Julian</td>
+                            <td contenteditable="true" class="editable">None</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true" class="editable">Myriam</td>
+                            <td contenteditable="true" class="editable">Gluten-free</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true" class="editable">Alberto</td>
+                            <td contenteditable="true" class="editable">None</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true" class="editable">Garay</td>
+                            <td contenteditable="true" class="editable">None</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true" class="editable">Igal</td>
+                            <td contenteditable="true" class="editable">Kosher</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td contenteditable="true" class="editable">Click to edit</td>
+                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                        </tr>
+                    </tbody>
                         <tr>
                             <td contenteditable="true" class="editable">Erin</td>
                             <td contenteditable="true" class="editable">Click to edit</td>

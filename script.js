@@ -552,3 +552,252 @@ document.addEventListener('DOMContentLoaded', () => {
         helpTooltip.remove();
     }, 10000);
 });
+// Activity Management System
+class ActivityManager {
+    constructor() {
+        this.deleteMode = false;
+        this.selectedActivity = null;
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.setupModal();
+    }
+
+    setupEventListeners() {
+        // Add Activity Button
+        document.getElementById('add-activity-btn')?.addEventListener('click', () => {
+            this.addNewActivity();
+        });
+
+        // Color Picker Button
+        document.getElementById('color-picker-btn')?.addEventListener('click', () => {
+            this.openColorPicker();
+        });
+
+        // Delete Mode Button
+        document.getElementById('delete-mode-btn')?.addEventListener('click', () => {
+            this.toggleDeleteMode();
+        });
+
+        // Activity click handlers for color changing
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.time-slot') && !this.deleteMode) {
+                this.selectedActivity = e.target.closest('.time-slot');
+            }
+        });
+    }
+
+    setupModal() {
+        const modal = document.getElementById('color-picker-modal');
+        const closeBtn = modal?.querySelector('.close');
+        
+        // Close modal events
+        closeBtn?.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Color option selection
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', () => {
+                this.applyColor(option.dataset.color);
+                modal.style.display = 'none';
+            });
+        });
+    }
+
+    addNewActivity() {
+        const dayCards = document.querySelectorAll('.day-card');
+        if (dayCards.length === 0) return;
+
+        // Prompt for activity details
+        const time = prompt('Enter time (e.g., "2:00 PM - 3:00 PM"):');
+        if (!time) return;
+
+        const title = prompt('Enter activity title:');
+        if (!title) return;
+
+        const description = prompt('Enter activity description (optional):') || '';
+        const leader = prompt('Enter session leader (optional):') || '';
+
+        // Ask which day to add to
+        const dayOptions = ['Tuesday, Oct 14', 'Wednesday, Oct 15', 'Thursday, Oct 16', 'Friday, Oct 17'];
+        const dayChoice = prompt(`Which day? Enter number:\n1. ${dayOptions[0]}\n2. ${dayOptions[1]}\n3. ${dayOptions[2]}\n4. ${dayOptions[3]}`);
+        
+        const dayIndex = parseInt(dayChoice) - 1;
+        if (dayIndex < 0 || dayIndex >= dayCards.length) {
+            alert('Invalid day selection');
+            return;
+        }
+
+        // Create new activity element
+        const newActivity = document.createElement('div');
+        newActivity.className = 'time-slot';
+        newActivity.innerHTML = `
+            <div class="time" contenteditable="true">${time}</div>
+            <div class="session">
+                <h4 contenteditable="true">${title}</h4>
+                <p contenteditable="true">${description}${leader ? `<br>Led by: ${leader}` : ''}</p>
+            </div>
+        `;
+
+        // Add to selected day
+        dayCards[dayIndex].appendChild(newActivity);
+
+        // Setup delete functionality for new activity
+        this.setupActivityDelete(newActivity);
+
+        // Auto-save
+        if (window.contentEditor) {
+            window.contentEditor.saveContent();
+        }
+
+        alert('Activity added successfully!');
+    }
+
+    openColorPicker() {
+        if (!this.selectedActivity) {
+            alert('Please click on an activity first to change its color.');
+            return;
+        }
+
+        const modal = document.getElementById('color-picker-modal');
+        modal.style.display = 'block';
+    }
+
+    applyColor(colorClass) {
+        if (!this.selectedActivity) return;
+
+        // Remove existing color classes
+        const colorClasses = ['lunch', 'dinner', 'arrival', 'break', 'workshop', 'presentation', 'networking'];
+        colorClasses.forEach(cls => {
+            this.selectedActivity.classList.remove(cls);
+        });
+
+        // Add new color class (unless it's default)
+        if (colorClass !== 'default') {
+            this.selectedActivity.classList.add(colorClass);
+        }
+
+        // Auto-save
+        if (window.contentEditor) {
+            window.contentEditor.saveContent();
+        }
+
+        alert(`Color changed to ${colorClass}!`);
+    }
+
+    toggleDeleteMode() {
+        this.deleteMode = !this.deleteMode;
+        const btn = document.getElementById('delete-mode-btn');
+        const calendarGrid = document.querySelector('.calendar-grid');
+
+        if (this.deleteMode) {
+            btn.textContent = '✅ Exit Delete Mode';
+            btn.style.background = '#dc3545';
+            calendarGrid.classList.add('delete-mode');
+            this.setupDeleteHandlers();
+            alert('Delete mode activated. Click on any activity to delete it.');
+        } else {
+            btn.textContent = '🗑️ Delete Mode';
+            btn.style.background = '#FF9900';
+            calendarGrid.classList.remove('delete-mode');
+            this.removeDeleteHandlers();
+        }
+    }
+
+    setupDeleteHandlers() {
+        document.querySelectorAll('.time-slot').forEach(activity => {
+            activity.addEventListener('click', this.deleteActivityHandler);
+        });
+    }
+
+    removeDeleteHandlers() {
+        document.querySelectorAll('.time-slot').forEach(activity => {
+            activity.removeEventListener('click', this.deleteActivityHandler);
+        });
+    }
+
+    deleteActivityHandler = (e) => {
+        if (!this.deleteMode) return;
+        
+        e.stopPropagation();
+        const activity = e.currentTarget;
+        const title = activity.querySelector('h4')?.textContent || 'this activity';
+        
+        if (confirm(`Are you sure you want to delete "${title}"?`)) {
+            activity.remove();
+            
+            // Auto-save
+            if (window.contentEditor) {
+                window.contentEditor.saveContent();
+            }
+        }
+    }
+
+    setupActivityDelete(activity) {
+        // This method can be used to setup delete functionality for dynamically added activities
+        if (this.deleteMode) {
+            activity.addEventListener('click', this.deleteActivityHandler);
+        }
+    }
+}
+
+// Enhanced Content Editor with Activity Management
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize activity manager
+    window.activityManager = new ActivityManager();
+    
+    // Add export functionality for activities
+    const exportActivities = () => {
+        const activities = [];
+        document.querySelectorAll('.day-card').forEach((dayCard, dayIndex) => {
+            const dayName = dayCard.querySelector('h3').textContent;
+            const dayActivities = [];
+            
+            dayCard.querySelectorAll('.time-slot').forEach(activity => {
+                const time = activity.querySelector('.time')?.textContent || '';
+                const title = activity.querySelector('h4')?.textContent || '';
+                const description = activity.querySelector('p')?.textContent || '';
+                const colorClass = Array.from(activity.classList).find(cls => 
+                    ['lunch', 'dinner', 'arrival', 'break', 'workshop', 'presentation', 'networking'].includes(cls)
+                ) || 'default';
+                
+                dayActivities.push({
+                    time,
+                    title,
+                    description,
+                    color: colorClass
+                });
+            });
+            
+            activities.push({
+                day: dayName,
+                activities: dayActivities
+            });
+        });
+
+        const dataStr = JSON.stringify(activities, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = 'offsite_activities.json';
+        link.click();
+    };
+
+    // Add keyboard shortcut for exporting activities
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+            e.preventDefault();
+            exportActivities();
+        }
+    });
+});
