@@ -316,6 +316,29 @@ tr:hover {
     opacity: 0.8;
 }
 
+/* Session Type Styling */
+.time-slot.lunch {
+    border-left-color: var(--aws-success);
+    background: linear-gradient(135deg, #E8F5E8 0%, var(--aws-light-gray) 100%);
+}
+
+.time-slot.dinner {
+    border-left-color: var(--aws-orange);
+    background: linear-gradient(135deg, #FFF8E1 0%, var(--aws-light-gray) 100%);
+}
+
+.time-slot.arrival {
+    border-left-color: var(--aws-light-blue);
+    background: linear-gradient(135deg, #E3F2FD 0%, var(--aws-light-gray) 100%);
+}
+
+/* Enhanced calendar layout */
+.calendar-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .header h1 {
