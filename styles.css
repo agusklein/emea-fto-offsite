@@ -48,6 +48,32 @@ body {
     flex-shrink: 0;
 }
 
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.amazon-text {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #232F3E;
+    font-family: 'Amazon Ember', Arial, sans-serif;
+}
+
+.aws-smile {
+    display: flex;
+    align-items: center;
+    margin: 0 4px;
+}
+
+.aws-text {
+    font-size: 1.2rem;
+    font-weight: normal;
+    color: #FF9900;
+    font-family: 'Amazon Ember', Arial, sans-serif;
+}
+
 .header h1 {
     font-size: 2.5rem;
     font-weight: 500;
@@ -509,4 +535,161 @@ tr:hover {
     .session p {
         font-size: 0.8em;
     }
+}
+/* Schedule Table Styling */
+.agenda-table {
+    margin: 40px 0;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.agenda-table h2 {
+    color: #232F3E;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+    background: white;
+    min-width: 800px;
+}
+
+.schedule-table thead {
+    background: #232F3E;
+    color: white;
+}
+
+.schedule-table th {
+    padding: 15px 12px;
+    text-align: center;
+    font-weight: 600;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.schedule-table th:first-child {
+    width: 100px;
+    background: #FF9900;
+}
+
+.schedule-table th:last-child {
+    border-right: none;
+}
+
+.schedule-table td {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    vertical-align: top;
+    min-height: 60px;
+}
+
+.time-cell {
+    background: #f8f9fa;
+    font-weight: bold;
+    color: #232F3E;
+    text-align: center;
+    width: 100px;
+    font-size: 0.85em;
+}
+
+.session-cell {
+    background: #fff;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.session-cell:hover {
+    background: rgba(255, 153, 0, 0.05);
+}
+
+.session-cell strong {
+    color: #232F3E;
+    font-size: 0.95em;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.session-cell br + text,
+.session-cell:not(strong) {
+    color: #666;
+    font-size: 0.8em;
+    line-height: 1.3;
+}
+
+.empty-cell {
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+}
+
+/* Session Type Colors */
+.session-cell.lunch {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.session-cell.dinner {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+}
+
+.session-cell.arrival {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.session-cell.break {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .agenda-table {
+        padding: 15px;
+        margin: 20px 0;
+    }
+    
+    .schedule-table {
+        font-size: 0.8em;
+        min-width: 700px;
+    }
+    
+    .schedule-table th,
+    .schedule-table td {
+        padding: 8px 6px;
+    }
+    
+    .time-cell {
+        font-size: 0.75em;
+    }
+    
+    .session-cell strong {
+        font-size: 0.85em;
+    }
+}
+
+/* Enhanced editable styling for table cells */
+.schedule-table [contenteditable="true"]:hover {
+    background-color: rgba(255, 153, 0, 0.1);
+    cursor: text;
+}
+
+.schedule-table [contenteditable="true"]:focus {
+    background-color: rgba(255, 153, 0, 0.15);
+    box-shadow: inset 0 0 0 2px rgba(255, 153, 0, 0.3);
+    outline: none;
+}
+
+.time-cell[contenteditable="true"]:focus {
+    background-color: rgba(255, 153, 0, 0.2);
 }
