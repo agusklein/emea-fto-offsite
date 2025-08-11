@@ -566,9 +566,17 @@ class ActivityManager {
     }
 
     setupEventListeners() {
-        // Add Activity Button
+        // Add Activity Button (main)
         document.getElementById('add-activity-btn')?.addEventListener('click', () => {
             this.addNewActivity();
+        });
+
+        // Individual day add buttons
+        document.querySelectorAll('.add-activity-day-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const dayIndex = parseInt(e.target.dataset.day);
+                this.addActivityToDay(dayIndex);
+            });
         });
 
         // Color Picker Button
@@ -584,7 +592,14 @@ class ActivityManager {
         // Activity click handlers for color changing
         document.addEventListener('click', (e) => {
             if (e.target.closest('.time-slot') && !this.deleteMode) {
+                // Remove previous selection
+                document.querySelectorAll('.time-slot.selected').forEach(slot => {
+                    slot.classList.remove('selected');
+                });
+                
+                // Add selection to clicked activity
                 this.selectedActivity = e.target.closest('.time-slot');
+                this.selectedActivity.classList.add('selected');
             }
         });
     }
@@ -613,9 +628,9 @@ class ActivityManager {
         });
     }
 
-    addNewActivity() {
+    addActivityToDay(dayIndex) {
         const dayCards = document.querySelectorAll('.day-card');
-        if (dayCards.length === 0) return;
+        if (dayIndex < 0 || dayIndex >= dayCards.length) return;
 
         // Prompt for activity details
         const time = prompt('Enter time (e.g., "2:00 PM - 3:00 PM"):');
@@ -626,16 +641,6 @@ class ActivityManager {
 
         const description = prompt('Enter activity description (optional):') || '';
         const leader = prompt('Enter session leader (optional):') || '';
-
-        // Ask which day to add to
-        const dayOptions = ['Tuesday, Oct 14', 'Wednesday, Oct 15', 'Thursday, Oct 16', 'Friday, Oct 17'];
-        const dayChoice = prompt(`Which day? Enter number:\n1. ${dayOptions[0]}\n2. ${dayOptions[1]}\n3. ${dayOptions[2]}\n4. ${dayOptions[3]}`);
-        
-        const dayIndex = parseInt(dayChoice) - 1;
-        if (dayIndex < 0 || dayIndex >= dayCards.length) {
-            alert('Invalid day selection');
-            return;
-        }
 
         // Create new activity element
         const newActivity = document.createElement('div');
@@ -648,8 +653,9 @@ class ActivityManager {
             </div>
         `;
 
-        // Add to selected day
-        dayCards[dayIndex].appendChild(newActivity);
+        // Add to selected day (before the add button)
+        const addBtnContainer = dayCards[dayIndex].querySelector('.add-activity-btn-container');
+        dayCards[dayIndex].insertBefore(newActivity, addBtnContainer.nextSibling);
 
         // Setup delete functionality for new activity
         this.setupActivityDelete(newActivity);
@@ -660,6 +666,23 @@ class ActivityManager {
         }
 
         alert('Activity added successfully!');
+    }
+
+    addNewActivity() {
+        const dayCards = document.querySelectorAll('.day-card');
+        if (dayCards.length === 0) return;
+
+        // Ask which day to add to
+        const dayOptions = ['Tuesday, Oct 14', 'Wednesday, Oct 15', 'Thursday, Oct 16', 'Friday, Oct 17'];
+        const dayChoice = prompt(`Which day? Enter number:\n1. ${dayOptions[0]}\n2. ${dayOptions[1]}\n3. ${dayOptions[2]}\n4. ${dayOptions[3]}`);
+        
+        const dayIndex = parseInt(dayChoice) - 1;
+        if (dayIndex < 0 || dayIndex >= dayCards.length) {
+            alert('Invalid day selection');
+            return;
+        }
+
+        this.addActivityToDay(dayIndex);
     }
 
     openColorPicker() {
@@ -690,6 +713,10 @@ class ActivityManager {
         if (window.contentEditor) {
             window.contentEditor.saveContent();
         }
+
+        // Remove selection
+        this.selectedActivity.classList.remove('selected');
+        this.selectedActivity = null;
 
         alert(`Color changed to ${colorClass}!`);
     }
