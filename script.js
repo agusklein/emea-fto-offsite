@@ -361,3 +361,194 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+// Content Editing Functionality
+class ContentEditor {
+    constructor() {
+        this.saveTimeout = null;
+        this.init();
+    }
+
+    init() {
+        this.createEditIndicators();
+        this.setupEditableElements();
+        this.loadSavedContent();
+    }
+
+    createEditIndicators() {
+        // Create edit mode indicator
+        const editIndicator = document.createElement('div');
+        editIndicator.className = 'edit-mode-indicator';
+        editIndicator.textContent = '✏️ Edit Mode Active';
+        document.body.appendChild(editIndicator);
+
+        // Create save status indicator
+        const saveStatus = document.createElement('div');
+        saveStatus.className = 'save-status';
+        saveStatus.textContent = '💾 Changes saved';
+        document.body.appendChild(saveStatus);
+
+        this.editIndicator = editIndicator;
+        this.saveStatus = saveStatus;
+    }
+
+    setupEditableElements() {
+        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+        
+        editableElements.forEach(element => {
+            // Show edit indicator on focus
+            element.addEventListener('focus', () => {
+                this.editIndicator.classList.add('active');
+            });
+
+            // Hide edit indicator on blur if no other editable is focused
+            element.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (!document.querySelector('[contenteditable="true"]:focus')) {
+                        this.editIndicator.classList.remove('active');
+                    }
+                }, 100);
+            });
+
+            // Auto-save on input
+            element.addEventListener('input', () => {
+                this.debouncedSave();
+            });
+
+            // Handle Enter key for better UX
+            element.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    // For single-line elements, prevent line breaks
+                    if (element.tagName === 'H2' || element.tagName === 'H3' || 
+                        element.tagName === 'H4' || element.classList.contains('time')) {
+                        e.preventDefault();
+                        element.blur();
+                    }
+                }
+            });
+        });
+    }
+
+    debouncedSave() {
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(() => {
+            this.saveContent();
+        }, 1000); // Save after 1 second of no changes
+    }
+
+    saveContent() {
+        const content = {};
+        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+        
+        editableElements.forEach((element, index) => {
+            content[`element_${index}`] = {
+                content: element.innerHTML,
+                tagName: element.tagName,
+                className: element.className
+            };
+        });
+
+        localStorage.setItem('offsite_content', JSON.stringify(content));
+        this.showSaveStatus();
+    }
+
+    loadSavedContent() {
+        const savedContent = localStorage.getItem('offsite_content');
+        if (!savedContent) return;
+
+        try {
+            const content = JSON.parse(savedContent);
+            const editableElements = document.querySelectorAll('[contenteditable="true"]');
+            
+            editableElements.forEach((element, index) => {
+                const saved = content[`element_${index}`];
+                if (saved && saved.content) {
+                    element.innerHTML = saved.content;
+                }
+            });
+        } catch (error) {
+            console.error('Error loading saved content:', error);
+        }
+    }
+
+    showSaveStatus() {
+        this.saveStatus.classList.add('show');
+        setTimeout(() => {
+            this.saveStatus.classList.remove('show');
+        }, 2000);
+    }
+
+    exportContent() {
+        const content = {};
+        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+        
+        editableElements.forEach((element, index) => {
+            content[`element_${index}`] = {
+                content: element.textContent,
+                tagName: element.tagName,
+                className: element.className
+            };
+        });
+
+        const dataStr = JSON.stringify(content, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = 'offsite_content.json';
+        link.click();
+    }
+
+    clearSavedContent() {
+        if (confirm('Are you sure you want to clear all saved changes? This cannot be undone.')) {
+            localStorage.removeItem('offsite_content');
+            location.reload();
+        }
+    }
+}
+
+// Initialize content editor when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.contentEditor = new ContentEditor();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+S to save
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            window.contentEditor.saveContent();
+        }
+        
+        // Ctrl+E to export
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault();
+            window.contentEditor.exportContent();
+        }
+        
+        // Ctrl+Shift+C to clear
+        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            window.contentEditor.clearSavedContent();
+        }
+    });
+});
+
+// Add help tooltip
+document.addEventListener('DOMContentLoaded', () => {
+    const helpTooltip = document.createElement('div');
+    helpTooltip.innerHTML = `
+        <div style="position: fixed; bottom: 20px; left: 20px; background: #232F3E; color: white; padding: 10px; border-radius: 8px; font-size: 0.8em; z-index: 1000; max-width: 250px;">
+            <strong>✏️ Editing Tips:</strong><br>
+            • Click any text to edit<br>
+            • Changes auto-save<br>
+            • Ctrl+S: Manual save<br>
+            • Ctrl+E: Export content<br>
+            • Ctrl+Shift+C: Clear all
+        </div>
+    `;
+    
+    // Show help for 10 seconds on load
+    document.body.appendChild(helpTooltip);
+    setTimeout(() => {
+        helpTooltip.remove();
+    }, 10000);
+});
