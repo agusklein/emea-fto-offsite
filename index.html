@@ -3,27 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EMEA FTO Offsite - Barcelona 2025</title>
+    <title>EMEA FTO Offsite - October 2025</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amazon+Ember:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="header">
         <div class="container">
-            <h1>EMEA FTO Offsite - Barcelona, October 2025</h1>
+            <div class="header-content">
+                <div class="aws-logo">
+                    <svg width="50" height="30" viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.7 21.5c-3.8 2.8-9.3 4.3-14 4.3-6.6 0-12.6-2.4-17.1-6.4-.4-.3-.04-.8.4-.5 5.3 3.1 11.9 4.9 18.7 4.9 4.6 0 9.6-.9 14.2-2.8.7-.3 1.3.4.8.9z" fill="#FF9900"/>
+                        <path d="M17.4 19.4c-.5-.6-3.2-.3-4.4-.1-.4.04-.5-.3-.1-.5 2.2-1.5 5.8-1.1 6.2-.6.4.6-.1 4.4-2.3 6.2-.3.3-.6.1-.5-.2.5-1.2 1.6-3.9 1.1-4.8z" fill="#FF9900"/>
+                    </svg>
+                </div>
+                <h1>EMEA FTO Offsite - October 2025</h1>
+            </div>
         </div>
     </header>
 
     <main class="container">
         <section class="welcome">
             <div class="welcome-card">
-                <h2 contenteditable="true">Welcome to Barcelona! 🇪🇸</h2>
-                <p contenteditable="true">We're excited to bring the EMEA FTO team together for our October 2025 offsite in beautiful Barcelona. This will be an opportunity to collaborate, strategize, and strengthen our team bonds while exploring one of Europe's most vibrant cities.</p>
+                <h2>Welcome to Barcelona! 🇪🇸</h2>
+                <p>We're excited to bring the EMEA FTO team together for our October 2025 offsite in beautiful Barcelona. This will be an opportunity to collaborate, strategize, and strengthen our team bonds while exploring one of Europe's most vibrant cities.</p>
                 <div class="location-info">
                     <div class="info-item">
-                        <strong contenteditable="true">📍 Office Location:</strong> <span contenteditable="true">AWS BCN15 Office, Barcelona</span>
+                        <strong>📍 Office Location:</strong> <span>AWS BCN15 Office, Barcelona</span>
                     </div>
                     <div class="info-item">
-                        <strong contenteditable="true">🌤️ Expected Weather:</strong> <span contenteditable="true">Mid-October in Barcelona typically features pleasant temperatures (18-22°C/64-72°F) with occasional light rain. Perfect for both indoor sessions and evening activities!</span>
+                        <strong>🌤️ Expected Weather:</strong> <span>Mid-October in Barcelona typically features pleasant temperatures (18-22°C/64-72°F) with occasional light rain. Perfect for both indoor sessions and evening activities!</span>
                     </div>
                 </div>
             </div>
@@ -31,23 +40,438 @@
 
         <!-- AGENDA SECTION -->
         <section class="agenda">
-            <h2 contenteditable="true" class="editable-title">📅 Offsite Agenda</h2>
+            <h2 class="section-title">📅 Offsite Agenda</h2>
             
             <!-- Table Management Controls -->
             <div class="table-controls">
                 <button id="add-activity-btn" class="control-btn">➕ Add Activity</button>
                 <button id="edit-mode-btn" class="control-btn">✏️ Edit Mode</button>
-                <button id="export-agenda-btn" class="control-btn">📤 Export</button>
+                <button id="export-agenda-btn" class="control-btn">📤 Export Agenda</button>
+                <button id="color-mode-btn" class="control-btn">🎨 Color Mode</button>
+            </div>
+            
+            <div class="calendar-view">
+                <!-- October 14th -->
+                <div class="day-column">
+                    <div class="day-header">
+                        <h3>October 14th</h3>
+                        <span class="day-subtitle">Monday - Arrival Day</span>
+                    </div>
+                    <div class="time-slot arrival" data-category="arrival">
+                        <div class="time">Afternoon (before 8pm)</div>
+                        <div class="session">
+                            <h4>Arrival to Barcelona</h4>
+                            <p>Team members arrive in Barcelona</p>
+                        </div>
+                    </div>
+                    <div class="time-slot social" data-category="social">
+                        <div class="time">8:00 PM - 10:00 PM</div>
+                        <div class="session">
+                            <h4>Welcome Dinner</h4>
+                            <p>Team dinner to kick off the offsite</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- October 15th -->
+                <div class="day-column">
+                    <div class="day-header">
+                        <h3>October 15th</h3>
+                        <span class="day-subtitle">Tuesday - Main Sessions</span>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">9:00 AM - 9:30 AM</div>
+                        <div class="session">
+                            <h4>Welcome & Intro</h4>
+                            <p><strong>Owner:</strong> Marta | <strong>Timekeeper:</strong> Agus</p>
+                        </div>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">9:30 AM - 12:00 PM</div>
+                        <div class="session">
+                            <h4>Team Catch Up and Updates</h4>
+                            <p><strong>Owner:</strong> Erin & Agus | <strong>Timekeeper:</strong> Agus</p>
+                            <p><em>10 min break in the middle</em></p>
+                        </div>
+                    </div>
+                    <div class="time-slot break" data-category="break">
+                        <div class="time">12:00 PM - 1:00 PM</div>
+                        <div class="session">
+                            <h4>Lunch</h4>
+                            <p><strong>Timekeeper:</strong> Agus</p>
+                        </div>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">1:15 PM - 2:45 PM</div>
+                        <div class="session">
+                            <h4>Tech Goals</h4>
+                            <p><strong>Owner:</strong> Emmanuelle | <strong>Timekeeper:</strong> Agus</p>
+                        </div>
+                    </div>
+                    <div class="time-slot break" data-category="break">
+                        <div class="time">2:45 PM - 3:00 PM</div>
+                        <div class="session">
+                            <h4>Break</h4>
+                            <p><strong>Timekeeper:</strong> Agus</p>
+                        </div>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">3:00 PM - 5:00 PM</div>
+                        <div class="session">
+                            <h4>Team Culture</h4>
+                            <p><strong>Owner:</strong> Julian | <strong>Timekeeper:</strong> Agus</p>
+                        </div>
+                    </div>
+                    <div class="time-slot social" data-category="social">
+                        <div class="time">6:00 PM - 8:00 PM</div>
+                        <div class="session">
+                            <h4>Team Building</h4>
+                            <p>Team building activities</p>
+                        </div>
+                    </div>
+                    <div class="time-slot social" data-category="social">
+                        <div class="time">8:00 PM - 10:00 PM</div>
+                        <div class="session">
+                            <h4>Dinner</h4>
+                            <p>Team dinner</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- October 16th -->
+                <div class="day-column">
+                    <div class="day-header">
+                        <h3>October 16th</h3>
+                        <span class="day-subtitle">Wednesday - GenAI Focus</span>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">9:00 AM - 10:00 AM</div>
+                        <div class="session">
+                            <h4>Specialists</h4>
+                            <p><strong>Owner:</strong> Myriam & Alberto | <strong>Timekeeper:</strong> Erin</p>
+                        </div>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">10:30 AM - 11:00 AM</div>
+                        <div class="session">
+                            <h4>GenAI Business</h4>
+                            <p><strong>Owner:</strong> Gaurav | <strong>Timekeeper:</strong> Erin</p>
+                        </div>
+                    </div>
+                    <div class="time-slot demo" data-category="demo">
+                        <div class="time">11:00 AM - 12:00 PM</div>
+                        <div class="session">
+                            <h4>GenAI Q Demo</h4>
+                            <p><strong>Owner:</strong> Ygal | <strong>Timekeeper:</strong> Erin</p>
+                        </div>
+                    </div>
+                    <div class="time-slot break" data-category="break">
+                        <div class="time">12:00 PM - 1:30 PM</div>
+                        <div class="session">
+                            <h4>Lunch</h4>
+                            <p><strong>Timekeeper:</strong> Erin</p>
+                        </div>
+                    </div>
+                    <div class="time-slot workshop" data-category="workshop">
+                        <div class="time">1:30 PM - 4:30 PM</div>
+                        <div class="session">
+                            <h4>GenAI Working Groups</h4>
+                            <p><strong>Timekeeper:</strong> Erin</p>
+                        </div>
+                    </div>
+                    <div class="time-slot free" data-category="free">
+                        <div class="time">4:30 PM - 5:30 PM</div>
+                        <div class="session">
+                            <h4>Free Time</h4>
+                            <p><strong>Timekeeper:</strong> Erin</p>
+                        </div>
+                    </div>
+                    <div class="time-slot social" data-category="social">
+                        <div class="time">6:00 PM - 8:00 PM</div>
+                        <div class="session">
+                            <h4>Team Building</h4>
+                            <p>Team building activities</p>
+                        </div>
+                    </div>
+                    <div class="time-slot social" data-category="social">
+                        <div class="time">8:00 PM - 10:00 PM</div>
+                        <div class="session">
+                            <h4>Dinner</h4>
+                            <p>Team dinner</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- October 17th -->
+                <div class="day-column">
+                    <div class="day-header">
+                        <h3>October 17th</h3>
+                        <span class="day-subtitle">Thursday - Wrap-up</span>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">9:30 AM - 10:30 AM</div>
+                        <div class="session">
+                            <h4>Future of FTO Role</h4>
+                            <p><strong>Owner:</strong> TBD | <strong>Timekeeper:</strong> Agus</p>
+                        </div>
+                    </div>
+                    <div class="time-slot meeting" data-category="meeting">
+                        <div class="time">10:30 AM - 11:00 AM</div>
+                        <div class="session">
+                            <h4>Offsite Closure</h4>
+                            <p><strong>Owner:</strong> Marta | <strong>Timekeeper:</strong> Agus</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legend -->
+            <div class="legend">
+                <h4>Activity Types:</h4>
+                <div class="legend-items">
+                    <span class="legend-item meeting">🏢 Meetings</span>
+                    <span class="legend-item workshop">🛠️ Workshops</span>
+                    <span class="legend-item demo">💻 Demos</span>
+                    <span class="legend-item social">🍽️ Social</span>
+                    <span class="legend-item break">☕ Breaks</span>
+                    <span class="legend-item free">🆓 Free Time</span>
+                    <span class="legend-item arrival">✈️ Arrival</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- PARTICIPANTS SECTION -->
+        <section class="participants">
+            <h2 class="section-title">👥 Participants</h2>
+            
+            <div class="table-controls">
+                <button id="add-participant-btn" class="control-btn">➕ Add Participant</button>
+                <button id="export-participants-btn" class="control-btn">📊 Export to CSV</button>
+                <button id="save-data-btn" class="control-btn">💾 Save Data</button>
             </div>
             
             <div class="table-wrapper">
-                <table class="agenda-table">
+                <table class="participants-table" id="participantsTable">
                     <thead>
                         <tr>
-                            <th>Day</th>
-                            <th>Agenda</th>
-                            <th>Time</th>
-                            <th>Owner(s)</th>
+                            <th>Participant</th>
+                            <th>Dietary Restrictions</th>
+                            <th>Arrival Time at BCN</th>
+                            <th>Departure Time at BCN</th>
+                            <th>Hotel</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participantsBody">
+                        <tr>
+                            <td contenteditable="true">Alfonso P</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Ana-Maria O</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Murtaza A</td>
+                            <td contenteditable="true">Halal or Kosher</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Alessandro</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Agostino G</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Claudio</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Ygal H</td>
+                            <td contenteditable="true">Kosher (or vegan)</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Erin Y</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Marta L</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Shashank K</td>
+                            <td contenteditable="true">Vegetarian</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Claudia S</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Agustin K</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Olivier D</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Orlando</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Guarav</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Alberto</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Myriam</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Emmanuelle</td>
+                            <td contenteditable="true">None</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- BARCELONA INFO SECTION -->
+        <section class="barcelona-info">
+            <h2 class="section-title">🏙️ Barcelona Information</h2>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🏢 AWS BCN15 Office</h3>
+                    <p><strong>Address:</strong> Carrer de Pallars, 193, 08005 Barcelona, Spain</p>
+                    <p><strong>Getting There:</strong> Metro Line 4 (Yellow) - Poblenou Station (5-minute walk)</p>
+                    <p><strong>Nearby:</strong> Close to the beach and 22@ tech district</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🌤️ Weather Forecast</h3>
+                    <p><strong>Temperature:</strong> 18-22°C (64-72°F)</p>
+                    <p><strong>Conditions:</strong> Generally pleasant with occasional light rain</p>
+                    <p><strong>What to Pack:</strong> Light layers, comfortable walking shoes, light rain jacket</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🚇 Transportation</h3>
+                    <p><strong>Airport:</strong> Barcelona-El Prat (BCN) - 30 minutes to city center</p>
+                    <p><strong>Metro:</strong> T-10 ticket covers 10 journeys (€11.35)</p>
+                    <p><strong>Taxi:</strong> Uber and local taxis available</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🍽️ Local Recommendations</h3>
+                    <p><strong>Must Try:</strong> Paella, Tapas, Jamón Ibérico</p>
+                    <p><strong>Coffee Culture:</strong> Cortado is the local favorite</p>
+                    <p><strong>Dinner Time:</strong> Locals eat late (9-10 PM)</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>📱 Useful Apps</h3>
+                    <p><strong>TMB App:</strong> Barcelona public transport</p>
+                    <p><strong>Citymapper:</strong> Navigation and transport</p>
+                    <p><strong>Google Translate:</strong> Catalan/Spanish translation</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>💡 Local Tips</h3>
+                    <p><strong>Language:</strong> Catalan and Spanish are both official</p>
+                    <p><strong>Tipping:</strong> 5-10% at restaurants is appreciated</p>
+                    <p><strong>Safety:</strong> Generally very safe, watch for pickpockets in tourist areas</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Amazon Web Services, Inc. EMEA FTO Team Offsite</p>
+            <p>Last updated: <span id="lastUpdated">-</span></p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
                             <th>Time Keeper</th>
                             <th>Note Taker</th>
                             <th>Comment</th>

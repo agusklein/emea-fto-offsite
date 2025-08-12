@@ -1,830 +1,510 @@
-// Interactive functionality for the EMEA FTO Offsite website
+// EMEA FTO Offsite Website JavaScript
+// Enhanced functionality for participant management and agenda interaction
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the page
-    initializeEditableCells();
-    loadSavedData();
-    
-    // Auto-save functionality
-    setInterval(saveData, 30000); // Save every 30 seconds
-});
-
-// Initialize editable cells with better UX
-function initializeEditableCells() {
-    const editableCells = document.querySelectorAll('.editable');
-    
-    editableCells.forEach(cell => {
-        // Add placeholder text styling
-        if (cell.textContent.trim() === 'Click to edit') {
-            cell.classList.add('placeholder');
-        }
-        
-        // Focus event
-        cell.addEventListener('focus', function() {
-            if (this.classList.contains('placeholder')) {
-                this.textContent = '';
-                this.classList.remove('placeholder');
-            }
-        });
-        
-        // Blur event
-        cell.addEventListener('blur', function() {
-            if (this.textContent.trim() === '') {
-                this.textContent = 'Click to edit';
-                this.classList.add('placeholder');
-            }
-            saveData();
-        });
-        
-        // Enter key handling
-        cell.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.blur();
-            }
-        });
-    });
-}
-
-// Add new participant row
-function addParticipant() {
-    const table = document.getElementById('participantsTable').getElementsByTagName('tbody')[0];
-    const newRow = table.insertRow();
-    
-    newRow.innerHTML = `
-        <td contenteditable="true" class="editable placeholder">Enter name</td>
-        <td contenteditable="true" class="editable placeholder">Enter dietary restrictions</td>
-        <td contenteditable="true" class="editable placeholder">Click to edit</td>
-        <td contenteditable="true" class="editable placeholder">Click to edit</td>
-        <td contenteditable="true" class="editable placeholder">Click to edit</td>
-        <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-    `;
-    
-    // Initialize the new editable cells
-    const newEditableCells = newRow.querySelectorAll('.editable');
-    newEditableCells.forEach(cell => {
-        cell.addEventListener('focus', function() {
-            if (this.classList.contains('placeholder')) {
-                this.textContent = '';
-                this.classList.remove('placeholder');
-            }
-        });
-        
-        cell.addEventListener('blur', function() {
-            if (this.textContent.trim() === '') {
-                this.textContent = this.textContent.includes('name') ? 'Enter name' : 
-                                 this.textContent.includes('dietary') ? 'Enter dietary restrictions' : 'Click to edit';
-                this.classList.add('placeholder');
-            }
-            saveData();
-        });
-        
-        cell.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.blur();
-            }
-        });
-    });
-    
-    // Focus on the first cell of the new row
-    newEditableCells[0].focus();
-    
-    saveData();
-}
-
-// Delete participant row
-function deleteRow(button) {
-    if (confirm('Are you sure you want to delete this participant?')) {
-        const row = button.closest('tr');
-        row.remove();
-        saveData();
-    }
-}
-
-// Save data to localStorage
-function saveData() {
-    const tableData = [];
-    const rows = document.querySelectorAll('#participantsTable tbody tr');
-    
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 5) {
-            tableData.push({
-                name: cells[0].textContent,
-                dietary: cells[1].textContent,
-                arrival: cells[2].textContent,
-                departure: cells[3].textContent,
-                hotel: cells[4].textContent
-            });
-        }
-    });
-    
-    localStorage.setItem('emea-fto-participants', JSON.stringify(tableData));
-    
-    // Show save indicator
-    showSaveIndicator();
-}
-
-// Load saved data from localStorage
-function loadSavedData() {
-    const savedData = localStorage.getItem('emea-fto-participants');
-    if (savedData) {
-        try {
-            const tableData = JSON.parse(savedData);
-            const tbody = document.querySelector('#participantsTable tbody');
-            
-            // Clear existing rows except the first two sample rows
-            const existingRows = tbody.querySelectorAll('tr');
-            existingRows.forEach((row, index) => {
-                if (index >= 2) {
-                    row.remove();
-                }
-            });
-            
-            // Add saved rows (skip first two if they match sample data)
-            tableData.forEach((participant, index) => {
-                if (index < 2) {
-                    // Update existing sample rows
-                    const row = existingRows[index];
-                    if (row) {
-                        const cells = row.querySelectorAll('td');
-                        if (cells.length >= 5) {
-                            cells[0].textContent = participant.name;
-                            cells[1].textContent = participant.dietary;
-                            cells[2].textContent = participant.arrival;
-                            cells[3].textContent = participant.departure;
-                            cells[4].textContent = participant.hotel;
-                            
-                            // Remove placeholder class if content is not placeholder
-                            cells.forEach(cell => {
-                                if (cell.classList.contains('editable') && 
-                                    !cell.textContent.includes('Click to edit') && 
-                                    !cell.textContent.includes('Enter')) {
-                                    cell.classList.remove('placeholder');
-                                }
-                            });
-                        }
-                    }
-                } else {
-                    // Add new rows for additional participants
-                    addParticipantFromData(participant);
-                }
-            });
-        } catch (e) {
-            console.error('Error loading saved data:', e);
-        }
-    }
-}
-
-// Add participant from saved data
-function addParticipantFromData(participant) {
-    const table = document.getElementById('participantsTable').getElementsByTagName('tbody')[0];
-    const newRow = table.insertRow();
-    
-    newRow.innerHTML = `
-        <td contenteditable="true" class="editable">${participant.name}</td>
-        <td contenteditable="true" class="editable">${participant.dietary}</td>
-        <td contenteditable="true" class="editable">${participant.arrival}</td>
-        <td contenteditable="true" class="editable">${participant.departure}</td>
-        <td contenteditable="true" class="editable">${participant.hotel}</td>
-        <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-    `;
-    
-    // Initialize the new editable cells
-    const newEditableCells = newRow.querySelectorAll('.editable');
-    newEditableCells.forEach(cell => {
-        // Remove placeholder class if content is meaningful
-        if (!cell.textContent.includes('Click to edit') && 
-            !cell.textContent.includes('Enter')) {
-            cell.classList.remove('placeholder');
-        }
-        
-        cell.addEventListener('focus', function() {
-            if (this.classList.contains('placeholder')) {
-                this.textContent = '';
-                this.classList.remove('placeholder');
-            }
-        });
-        
-        cell.addEventListener('blur', function() {
-            if (this.textContent.trim() === '') {
-                this.textContent = 'Click to edit';
-                this.classList.add('placeholder');
-            }
-            saveData();
-        });
-        
-        cell.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.blur();
-            }
-        });
-    });
-}
-
-// Show save indicator
-function showSaveIndicator() {
-    // Remove existing indicator
-    const existingIndicator = document.querySelector('.save-indicator');
-    if (existingIndicator) {
-        existingIndicator.remove();
-    }
-    
-    // Create and show new indicator
-    const indicator = document.createElement('div');
-    indicator.className = 'save-indicator';
-    indicator.textContent = '✓ Saved';
-    indicator.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #1B660F;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-size: 14px;
-        z-index: 1000;
-        opacity: 0;
-        transition: opacity 0.3s;
-    `;
-    
-    document.body.appendChild(indicator);
-    
-    // Animate in
-    setTimeout(() => {
-        indicator.style.opacity = '1';
-    }, 100);
-    
-    // Animate out and remove
-    setTimeout(() => {
-        indicator.style.opacity = '0';
-        setTimeout(() => {
-            if (indicator.parentNode) {
-                indicator.parentNode.removeChild(indicator);
-            }
-        }, 300);
-    }, 2000);
-}
-
-// Export data functionality
-function exportData() {
-    const tableData = [];
-    const rows = document.querySelectorAll('#participantsTable tbody tr');
-    
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 5) {
-            tableData.push({
-                Name: cells[0].textContent,
-                'Dietary Restrictions': cells[1].textContent,
-                'Arrival Date/Time': cells[2].textContent,
-                'Departure Date/Time': cells[3].textContent,
-                Hotel: cells[4].textContent
-            });
-        }
-    });
-    
-    // Convert to CSV
-    const csv = convertToCSV(tableData);
-    downloadCSV(csv, 'emea-fto-participants.csv');
-}
-
-// Convert data to CSV format
-function convertToCSV(data) {
-    if (data.length === 0) return '';
-    
-    const headers = Object.keys(data[0]);
-    const csvContent = [
-        headers.join(','),
-        ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
-    ].join('\n');
-    
-    return csvContent;
-}
-
-// Download CSV file
-function downloadCSV(csv, filename) {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
-
-// Add export button to the page
-document.addEventListener('DOMContentLoaded', function() {
-    const addButton = document.querySelector('.add-btn');
-    if (addButton) {
-        const exportButton = document.createElement('button');
-        exportButton.textContent = '📊 Export to CSV';
-        exportButton.className = 'add-btn';
-        exportButton.style.marginLeft = '10px';
-        exportButton.onclick = exportData;
-        addButton.parentNode.insertBefore(exportButton, addButton.nextSibling);
-    }
-});
-
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    // Ctrl+S to save
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        saveData();
-    }
-    
-    // Ctrl+E to export
-    if (e.ctrlKey && e.key === 'e') {
-        e.preventDefault();
-        exportData();
-    }
-});
-
-// Add CSS for placeholder styling
-const style = document.createElement('style');
-style.textContent = `
-    .placeholder {
-        color: #999 !important;
-        font-style: italic;
-    }
-    
-    .save-indicator {
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
-`;
-document.head.appendChild(style);
-// Content Editing Functionality
-class ContentEditor {
+class OffsiteManager {
     constructor() {
-        this.saveTimeout = null;
+        this.participants = [];
+        this.agenda = [];
+        this.editMode = false;
+        this.colorMode = false;
+        this.autoSaveInterval = null;
+        
         this.init();
     }
 
     init() {
-        this.createEditIndicators();
-        this.setupEditableElements();
-        this.loadSavedContent();
-    }
-
-    createEditIndicators() {
-        // Create edit mode indicator
-        const editIndicator = document.createElement('div');
-        editIndicator.className = 'edit-mode-indicator';
-        editIndicator.textContent = '✏️ Edit Mode Active';
-        document.body.appendChild(editIndicator);
-
-        // Create save status indicator
-        const saveStatus = document.createElement('div');
-        saveStatus.className = 'save-status';
-        saveStatus.textContent = '💾 Changes saved';
-        document.body.appendChild(saveStatus);
-
-        this.editIndicator = editIndicator;
-        this.saveStatus = saveStatus;
-    }
-
-    setupEditableElements() {
-        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+        this.loadData();
+        this.bindEvents();
+        this.startAutoSave();
+        this.updateLastModified();
         
-        editableElements.forEach(element => {
-            // Show edit indicator on focus
-            element.addEventListener('focus', () => {
-                this.editIndicator.classList.add('active');
-            });
+        // Add fade-in animation to sections
+        this.animateElements();
+    }
 
-            // Hide edit indicator on blur if no other editable is focused
-            element.addEventListener('blur', () => {
-                setTimeout(() => {
-                    if (!document.querySelector('[contenteditable="true"]:focus')) {
-                        this.editIndicator.classList.remove('active');
-                    }
-                }, 100);
-            });
+    bindEvents() {
+        // Participant management
+        document.getElementById('add-participant-btn')?.addEventListener('click', () => this.addParticipant());
+        document.getElementById('export-participants-btn')?.addEventListener('click', () => this.exportParticipants());
+        document.getElementById('save-data-btn')?.addEventListener('click', () => this.saveData());
 
-            // Auto-save on input
-            element.addEventListener('input', () => {
-                this.debouncedSave();
-            });
+        // Agenda management
+        document.getElementById('add-activity-btn')?.addEventListener('click', () => this.addActivity());
+        document.getElementById('edit-mode-btn')?.addEventListener('click', () => this.toggleEditMode());
+        document.getElementById('export-agenda-btn')?.addEventListener('click', () => this.exportAgenda());
+        document.getElementById('color-mode-btn')?.addEventListener('click', () => this.toggleColorMode());
 
-            // Handle Enter key for better UX
-            element.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    // For single-line elements, prevent line breaks
-                    if (element.tagName === 'H2' || element.tagName === 'H3' || 
-                        element.tagName === 'H4' || element.classList.contains('time')) {
-                        e.preventDefault();
-                        element.blur();
-                    }
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
+
+        // Auto-save on content changes
+        document.addEventListener('input', (e) => {
+            if (e.target.contentEditable === 'true') {
+                this.scheduleAutoSave();
+            }
+        });
+
+        // Handle participant table changes
+        this.bindParticipantEvents();
+        
+        // Handle agenda interactions
+        this.bindAgendaEvents();
+    }
+
+    bindParticipantEvents() {
+        const table = document.getElementById('participantsTable');
+        if (!table) return;
+
+        // Handle cell editing
+        table.addEventListener('blur', (e) => {
+            if (e.target.contentEditable === 'true') {
+                this.saveData();
+                this.showMessage('Data saved automatically', 'success');
+            }
+        }, true);
+
+        // Handle Enter key in cells
+        table.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.contentEditable === 'true') {
+                e.preventDefault();
+                e.target.blur();
+            }
+        });
+    }
+
+    bindAgendaEvents() {
+        // Make time slots interactive
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.addEventListener('click', () => {
+                if (this.editMode) {
+                    this.editTimeSlot(slot);
                 }
             });
         });
     }
 
-    debouncedSave() {
-        clearTimeout(this.saveTimeout);
-        this.saveTimeout = setTimeout(() => {
-            this.saveContent();
-        }, 1000); // Save after 1 second of no changes
-    }
+    addParticipant() {
+        const tbody = document.getElementById('participantsBody');
+        if (!tbody) return;
 
-    saveContent() {
-        const content = {};
-        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td contenteditable="true">New Participant</td>
+            <td contenteditable="true">None</td>
+            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+        `;
         
-        editableElements.forEach((element, index) => {
-            content[`element_${index}`] = {
-                content: element.innerHTML,
-                tagName: element.tagName,
-                className: element.className
-            };
-        });
-
-        localStorage.setItem('offsite_content', JSON.stringify(content));
-        this.showSaveStatus();
-    }
-
-    loadSavedContent() {
-        const savedContent = localStorage.getItem('offsite_content');
-        if (!savedContent) return;
-
-        try {
-            const content = JSON.parse(savedContent);
-            const editableElements = document.querySelectorAll('[contenteditable="true"]');
-            
-            editableElements.forEach((element, index) => {
-                const saved = content[`element_${index}`];
-                if (saved && saved.content) {
-                    element.innerHTML = saved.content;
-                }
-            });
-        } catch (error) {
-            console.error('Error loading saved content:', error);
-        }
-    }
-
-    showSaveStatus() {
-        this.saveStatus.classList.add('show');
-        setTimeout(() => {
-            this.saveStatus.classList.remove('show');
-        }, 2000);
-    }
-
-    exportContent() {
-        const content = {};
-        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+        tbody.appendChild(newRow);
+        newRow.classList.add('fade-in');
         
-        editableElements.forEach((element, index) => {
-            content[`element_${index}`] = {
-                content: element.textContent,
-                tagName: element.tagName,
-                className: element.className
-            };
-        });
-
-        const dataStr = JSON.stringify(content, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = 'offsite_content.json';
-        link.click();
-    }
-
-    clearSavedContent() {
-        if (confirm('Are you sure you want to clear all saved changes? This cannot be undone.')) {
-            localStorage.removeItem('offsite_content');
-            location.reload();
-        }
-    }
-}
-
-// Initialize content editor when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.contentEditor = new ContentEditor();
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        // Ctrl+S to save
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            window.contentEditor.saveContent();
+        // Focus on the first cell
+        const firstCell = newRow.querySelector('td[contenteditable="true"]');
+        if (firstCell) {
+            firstCell.focus();
+            firstCell.select();
         }
         
-        // Ctrl+E to export
-        if (e.ctrlKey && e.key === 'e') {
-            e.preventDefault();
-            window.contentEditor.exportContent();
+        this.saveData();
+        this.showMessage('New participant added', 'success');
+    }
+
+    addActivity() {
+        // Create a modal or form for adding new activities
+        const activity = prompt('Enter activity details (format: Day|Activity|Time|Owner):');
+        if (!activity) return;
+
+        const parts = activity.split('|');
+        if (parts.length !== 4) {
+            this.showMessage('Please use format: Day|Activity|Time|Owner', 'error');
+            return;
         }
-        
-        // Ctrl+Shift+C to clear
-        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-            e.preventDefault();
-            window.contentEditor.clearSavedContent();
-        }
-    });
-});
 
-// Add help tooltip
-document.addEventListener('DOMContentLoaded', () => {
-    const helpTooltip = document.createElement('div');
-    helpTooltip.innerHTML = `
-        <div style="position: fixed; bottom: 20px; left: 20px; background: #232F3E; color: white; padding: 10px; border-radius: 8px; font-size: 0.8em; z-index: 1000; max-width: 250px;">
-            <strong>✏️ Editing Tips:</strong><br>
-            • Click any text to edit<br>
-            • Changes auto-save<br>
-            • Ctrl+S: Manual save<br>
-            • Ctrl+E: Export content<br>
-            • Ctrl+Shift+C: Clear all
-        </div>
-    `;
-    
-    // Show help for 10 seconds on load
-    document.body.appendChild(helpTooltip);
-    setTimeout(() => {
-        helpTooltip.remove();
-    }, 10000);
-});
-// Activity Management System
-class ActivityManager {
-    constructor() {
-        this.deleteMode = false;
-        this.selectedActivity = null;
-        this.init();
+        // Add to appropriate day column
+        this.addActivityToCalendar(parts[0], parts[1], parts[2], parts[3]);
+        this.showMessage('Activity added successfully', 'success');
     }
 
-    init() {
-        this.setupEventListeners();
-        this.setupModal();
-    }
+    addActivityToCalendar(day, activity, time, owner) {
+        // Find the appropriate day column
+        const dayColumns = document.querySelectorAll('.day-column');
+        let targetColumn = null;
 
-    setupEventListeners() {
-        // Add Activity Button (main)
-        document.getElementById('add-activity-btn')?.addEventListener('click', () => {
-            this.addNewActivity();
-        });
-
-        // Individual day add buttons
-        document.querySelectorAll('.add-activity-day-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const dayIndex = parseInt(e.target.dataset.day);
-                this.addActivityToDay(dayIndex);
-            });
-        });
-
-        // Color Picker Button
-        document.getElementById('color-picker-btn')?.addEventListener('click', () => {
-            this.openColorPicker();
-        });
-
-        // Delete Mode Button
-        document.getElementById('delete-mode-btn')?.addEventListener('click', () => {
-            this.toggleDeleteMode();
-        });
-
-        // Activity click handlers for color changing
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.time-slot') && !this.deleteMode) {
-                // Remove previous selection
-                document.querySelectorAll('.time-slot.selected').forEach(slot => {
-                    slot.classList.remove('selected');
-                });
-                
-                // Add selection to clicked activity
-                this.selectedActivity = e.target.closest('.time-slot');
-                this.selectedActivity.classList.add('selected');
-            }
-        });
-    }
-
-    setupModal() {
-        const modal = document.getElementById('color-picker-modal');
-        const closeBtn = modal?.querySelector('.close');
-        
-        // Close modal events
-        closeBtn?.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
+        dayColumns.forEach(column => {
+            const header = column.querySelector('.day-header h3');
+            if (header && header.textContent.includes(day)) {
+                targetColumn = column;
             }
         });
 
-        // Color option selection
-        document.querySelectorAll('.color-option').forEach(option => {
-            option.addEventListener('click', () => {
-                this.applyColor(option.dataset.color);
-                modal.style.display = 'none';
-            });
-        });
-    }
+        if (!targetColumn) {
+            this.showMessage('Day not found. Please check the day format.', 'error');
+            return;
+        }
 
-    addActivityToDay(dayIndex) {
-        const dayCards = document.querySelectorAll('.day-card');
-        if (dayIndex < 0 || dayIndex >= dayCards.length) return;
-
-        // Prompt for activity details
-        const time = prompt('Enter time (e.g., "2:00 PM - 3:00 PM"):');
-        if (!time) return;
-
-        const title = prompt('Enter activity title:');
-        if (!title) return;
-
-        const description = prompt('Enter activity description (optional):') || '';
-        const leader = prompt('Enter session leader (optional):') || '';
-
-        // Create new activity element
-        const newActivity = document.createElement('div');
-        newActivity.className = 'time-slot';
-        newActivity.innerHTML = `
-            <div class="time" contenteditable="true">${time}</div>
+        // Create new time slot
+        const newSlot = document.createElement('div');
+        newSlot.className = 'time-slot meeting';
+        newSlot.innerHTML = `
+            <div class="time">${time}</div>
             <div class="session">
-                <h4 contenteditable="true">${title}</h4>
-                <p contenteditable="true">${description}${leader ? `<br>Led by: ${leader}` : ''}</p>
+                <h4>${activity}</h4>
+                <p><strong>Owner:</strong> ${owner}</p>
             </div>
         `;
 
-        // Add to selected day (before the add button)
-        const addBtnContainer = dayCards[dayIndex].querySelector('.add-activity-btn-container');
-        dayCards[dayIndex].insertBefore(newActivity, addBtnContainer.nextSibling);
-
-        // Setup delete functionality for new activity
-        this.setupActivityDelete(newActivity);
-
-        // Auto-save
-        if (window.contentEditor) {
-            window.contentEditor.saveContent();
-        }
-
-        alert('Activity added successfully!');
+        targetColumn.appendChild(newSlot);
+        newSlot.classList.add('fade-in');
     }
 
-    addNewActivity() {
-        const dayCards = document.querySelectorAll('.day-card');
-        if (dayCards.length === 0) return;
-
-        // Ask which day to add to
-        const dayOptions = ['Tuesday, Oct 14', 'Wednesday, Oct 15', 'Thursday, Oct 16', 'Friday, Oct 17'];
-        const dayChoice = prompt(`Which day? Enter number:\n1. ${dayOptions[0]}\n2. ${dayOptions[1]}\n3. ${dayOptions[2]}\n4. ${dayOptions[3]}`);
+    toggleEditMode() {
+        this.editMode = !this.editMode;
+        const btn = document.getElementById('edit-mode-btn');
         
-        const dayIndex = parseInt(dayChoice) - 1;
-        if (dayIndex < 0 || dayIndex >= dayCards.length) {
-            alert('Invalid day selection');
-            return;
-        }
-
-        this.addActivityToDay(dayIndex);
-    }
-
-    openColorPicker() {
-        if (!this.selectedActivity) {
-            alert('Please click on an activity first to change its color.');
-            return;
-        }
-
-        const modal = document.getElementById('color-picker-modal');
-        modal.style.display = 'block';
-    }
-
-    applyColor(colorClass) {
-        if (!this.selectedActivity) return;
-
-        // Remove existing color classes
-        const colorClasses = ['lunch', 'dinner', 'arrival', 'break', 'workshop', 'presentation', 'networking'];
-        colorClasses.forEach(cls => {
-            this.selectedActivity.classList.remove(cls);
-        });
-
-        // Add new color class (unless it's default)
-        if (colorClass !== 'default') {
-            this.selectedActivity.classList.add(colorClass);
-        }
-
-        // Auto-save
-        if (window.contentEditor) {
-            window.contentEditor.saveContent();
-        }
-
-        // Remove selection
-        this.selectedActivity.classList.remove('selected');
-        this.selectedActivity = null;
-
-        alert(`Color changed to ${colorClass}!`);
-    }
-
-    toggleDeleteMode() {
-        this.deleteMode = !this.deleteMode;
-        const btn = document.getElementById('delete-mode-btn');
-        const calendarGrid = document.querySelector('.calendar-grid');
-
-        if (this.deleteMode) {
-            btn.textContent = '✅ Exit Delete Mode';
-            btn.style.background = '#dc3545';
-            calendarGrid.classList.add('delete-mode');
-            this.setupDeleteHandlers();
-            alert('Delete mode activated. Click on any activity to delete it.');
+        if (this.editMode) {
+            btn.textContent = '✅ Exit Edit';
+            btn.style.background = '#ff4757';
+            this.showMessage('Edit mode enabled. Click on agenda items to edit.', 'success');
         } else {
-            btn.textContent = '🗑️ Delete Mode';
+            btn.textContent = '✏️ Edit Mode';
             btn.style.background = '#FF9900';
-            calendarGrid.classList.remove('delete-mode');
-            this.removeDeleteHandlers();
+            this.showMessage('Edit mode disabled.', 'success');
         }
     }
 
-    setupDeleteHandlers() {
-        document.querySelectorAll('.time-slot').forEach(activity => {
-            activity.addEventListener('click', this.deleteActivityHandler);
+    toggleColorMode() {
+        this.colorMode = !this.colorMode;
+        const btn = document.getElementById('color-mode-btn');
+        
+        if (this.colorMode) {
+            btn.textContent = '🎨 Exit Color';
+            btn.style.background = '#8C4FFF';
+            this.showColorPalette();
+        } else {
+            btn.textContent = '🎨 Color Mode';
+            btn.style.background = '#FF9900';
+            this.hideColorPalette();
+        }
+    }
+
+    showColorPalette() {
+        // Create color palette for activity categorization
+        const palette = document.createElement('div');
+        palette.id = 'color-palette';
+        palette.className = 'color-palette';
+        palette.innerHTML = `
+            <h4>Click an activity, then choose a category:</h4>
+            <div class="color-options">
+                <button class="color-btn meeting" data-category="meeting">🏢 Meeting</button>
+                <button class="color-btn workshop" data-category="workshop">🛠️ Workshop</button>
+                <button class="color-btn demo" data-category="demo">💻 Demo</button>
+                <button class="color-btn social" data-category="social">🍽️ Social</button>
+                <button class="color-btn break" data-category="break">☕ Break</button>
+                <button class="color-btn free" data-category="free">🆓 Free</button>
+            </div>
+        `;
+        
+        document.querySelector('.agenda').appendChild(palette);
+        
+        // Bind color selection events
+        palette.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const category = e.target.dataset.category;
+                this.applyColorToSelected(category);
+            });
         });
     }
 
-    removeDeleteHandlers() {
-        document.querySelectorAll('.time-slot').forEach(activity => {
-            activity.removeEventListener('click', this.deleteActivityHandler);
-        });
+    hideColorPalette() {
+        const palette = document.getElementById('color-palette');
+        if (palette) {
+            palette.remove();
+        }
     }
 
-    deleteActivityHandler = (e) => {
-        if (!this.deleteMode) return;
+    applyColorToSelected(category) {
+        // This would apply to a selected time slot
+        // For now, just show a message
+        this.showMessage(`Color category "${category}" ready. Click on an activity to apply.`, 'success');
+    }
+
+    editTimeSlot(slot) {
+        const session = slot.querySelector('.session h4');
+        if (!session) return;
+
+        const currentText = session.textContent;
+        const newText = prompt('Edit activity name:', currentText);
         
-        e.stopPropagation();
-        const activity = e.currentTarget;
-        const title = activity.querySelector('h4')?.textContent || 'this activity';
+        if (newText && newText !== currentText) {
+            session.textContent = newText;
+            this.showMessage('Activity updated', 'success');
+            this.saveData();
+        }
+    }
+
+    exportParticipants() {
+        const table = document.getElementById('participantsTable');
+        if (!table) return;
+
+        let csv = 'Participant,Dietary Restrictions,Arrival Time,Departure Time,Hotel\n';
         
-        if (confirm(`Are you sure you want to delete "${title}"?`)) {
-            activity.remove();
-            
-            // Auto-save
-            if (window.contentEditor) {
-                window.contentEditor.saveContent();
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 5) {
+                const rowData = [
+                    this.escapeCsv(cells[0].textContent),
+                    this.escapeCsv(cells[1].textContent),
+                    this.escapeCsv(cells[2].textContent),
+                    this.escapeCsv(cells[3].textContent),
+                    this.escapeCsv(cells[4].textContent)
+                ];
+                csv += rowData.join(',') + '\n';
+            }
+        });
+
+        this.downloadFile(csv, 'emea-fto-participants.csv', 'text/csv');
+        this.showMessage('Participants exported successfully', 'success');
+    }
+
+    exportAgenda() {
+        let agenda = 'EMEA FTO Offsite Agenda - October 2025\n\n';
+        
+        document.querySelectorAll('.day-column').forEach(dayCol => {
+            const dayHeader = dayCol.querySelector('.day-header h3');
+            if (dayHeader) {
+                agenda += `${dayHeader.textContent}\n`;
+                agenda += '='.repeat(dayHeader.textContent.length) + '\n\n';
+                
+                dayCol.querySelectorAll('.time-slot').forEach(slot => {
+                    const time = slot.querySelector('.time')?.textContent || '';
+                    const title = slot.querySelector('.session h4')?.textContent || '';
+                    const details = slot.querySelector('.session p')?.textContent || '';
+                    
+                    agenda += `${time}: ${title}\n`;
+                    if (details) {
+                        agenda += `   ${details}\n`;
+                    }
+                    agenda += '\n';
+                });
+                
+                agenda += '\n';
+            }
+        });
+
+        this.downloadFile(agenda, 'emea-fto-agenda.txt', 'text/plain');
+        this.showMessage('Agenda exported successfully', 'success');
+    }
+
+    saveData() {
+        const data = {
+            participants: this.getParticipantsData(),
+            lastModified: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
+        this.updateLastModified();
+    }
+
+    loadData() {
+        const saved = localStorage.getItem('emea-fto-offsite-data');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                this.participants = data.participants || [];
+                // Load participants back to table if needed
+            } catch (e) {
+                console.error('Error loading saved data:', e);
             }
         }
     }
 
-    setupActivityDelete(activity) {
-        // This method can be used to setup delete functionality for dynamically added activities
-        if (this.deleteMode) {
-            activity.addEventListener('click', this.deleteActivityHandler);
+    getParticipantsData() {
+        const table = document.getElementById('participantsTable');
+        if (!table) return [];
+
+        const participants = [];
+        const rows = table.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 5) {
+                participants.push({
+                    name: cells[0].textContent.trim(),
+                    dietary: cells[1].textContent.trim(),
+                    arrival: cells[2].textContent.trim(),
+                    departure: cells[3].textContent.trim(),
+                    hotel: cells[4].textContent.trim()
+                });
+            }
+        });
+        
+        return participants;
+    }
+
+    startAutoSave() {
+        this.autoSaveInterval = setInterval(() => {
+            this.saveData();
+        }, 30000); // Auto-save every 30 seconds
+    }
+
+    scheduleAutoSave() {
+        clearTimeout(this.autoSaveTimeout);
+        this.autoSaveTimeout = setTimeout(() => {
+            this.saveData();
+        }, 2000); // Save 2 seconds after last change
+    }
+
+    handleKeyboardShortcuts(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch (e.key) {
+                case 's':
+                    e.preventDefault();
+                    this.saveData();
+                    this.showMessage('Data saved manually', 'success');
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    this.exportParticipants();
+                    break;
+            }
         }
+    }
+
+    updateLastModified() {
+        const element = document.getElementById('lastUpdated');
+        if (element) {
+            element.textContent = new Date().toLocaleString();
+        }
+    }
+
+    showMessage(text, type = 'success') {
+        // Remove existing messages
+        document.querySelectorAll('.message').forEach(msg => msg.remove());
+        
+        const message = document.createElement('div');
+        message.className = `message ${type}`;
+        message.textContent = text;
+        
+        // Insert after the first section
+        const firstSection = document.querySelector('main section');
+        if (firstSection) {
+            firstSection.parentNode.insertBefore(message, firstSection.nextSibling);
+        }
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            message.remove();
+        }, 3000);
+    }
+
+    animateElements() {
+        // Add fade-in animation to main sections
+        const sections = document.querySelectorAll('section');
+        sections.forEach((section, index) => {
+            setTimeout(() => {
+                section.classList.add('fade-in');
+            }, index * 200);
+        });
+    }
+
+    escapeCsv(text) {
+        if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+            return '"' + text.replace(/"/g, '""') + '"';
+        }
+        return text;
+    }
+
+    downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 }
 
-// Enhanced Content Editor with Activity Management
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize activity manager
-    window.activityManager = new ActivityManager();
+// Global function for delete buttons
+function deleteParticipant(button) {
+    if (confirm('Are you sure you want to remove this participant?')) {
+        const row = button.closest('tr');
+        row.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            row.remove();
+            window.offsiteManager.saveData();
+            window.offsiteManager.showMessage('Participant removed', 'success');
+        }, 300);
+    }
+}
+
+// Add fadeOut animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(-100%); }
+    }
     
-    // Add export functionality for activities
-    const exportActivities = () => {
-        const activities = [];
-        document.querySelectorAll('.day-card').forEach((dayCard, dayIndex) => {
-            const dayName = dayCard.querySelector('h3').textContent;
-            const dayActivities = [];
-            
-            dayCard.querySelectorAll('.time-slot').forEach(activity => {
-                const time = activity.querySelector('.time')?.textContent || '';
-                const title = activity.querySelector('h4')?.textContent || '';
-                const description = activity.querySelector('p')?.textContent || '';
-                const colorClass = Array.from(activity.classList).find(cls => 
-                    ['lunch', 'dinner', 'arrival', 'break', 'workshop', 'presentation', 'networking'].includes(cls)
-                ) || 'default';
-                
-                dayActivities.push({
-                    time,
-                    title,
-                    description,
-                    color: colorClass
-                });
-            });
-            
-            activities.push({
-                day: dayName,
-                activities: dayActivities
-            });
-        });
+    .color-palette {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin: 1rem 0;
+        border-left: 4px solid var(--aws-orange);
+    }
+    
+    .color-options {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+    
+    .color-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: white;
+        transition: transform 0.2s ease;
+    }
+    
+    .color-btn:hover {
+        transform: scale(1.05);
+    }
+    
+    .color-btn.meeting { background: var(--meeting-color); }
+    .color-btn.workshop { background: var(--workshop-color); }
+    .color-btn.demo { background: var(--demo-color); }
+    .color-btn.social { background: var(--social-color); }
+    .color-btn.break { background: var(--break-color); }
+    .color-btn.free { background: var(--free-color); }
+`;
+document.head.appendChild(style);
 
-        const dataStr = JSON.stringify(activities, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = 'offsite_activities.json';
-        link.click();
-    };
-
-    // Add keyboard shortcut for exporting activities
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-            e.preventDefault();
-            exportActivities();
-        }
-    });
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    window.offsiteManager = new OffsiteManager();
 });
+
+// Service Worker for offline functionality (optional)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+                console.log('SW registration failed: ', registrationError);
+            });
+    });
+}
