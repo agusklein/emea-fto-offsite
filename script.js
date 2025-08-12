@@ -73,14 +73,8 @@ class OffsiteManager {
     }
 
     bindAgendaEvents() {
-        // Make time slots interactive
-        document.querySelectorAll('.time-slot').forEach(slot => {
-            slot.addEventListener('click', () => {
-                if (this.editMode) {
-                    this.editTimeSlot(slot);
-                }
-            });
-        });
+        // Agenda events are now handled in enableAgendaEditing/disableAgendaEditing
+        // This function can be used for other agenda-related events if needed
     }
 
     addParticipant() {
@@ -166,12 +160,71 @@ class OffsiteManager {
         if (this.editMode) {
             btn.textContent = '✅ Exit Edit';
             btn.style.background = '#ff4757';
-            this.showMessage('Edit mode enabled. Click on agenda items to edit.', 'success');
+            this.enableAgendaEditing();
+            this.showMessage('Edit mode enabled. Click on times, titles, or details to edit directly.', 'success');
         } else {
             btn.textContent = '✏️ Edit Mode';
             btn.style.background = '#FF9900';
+            this.disableAgendaEditing();
             this.showMessage('Edit mode disabled.', 'success');
         }
+    }
+
+    enableAgendaEditing() {
+        // Make time slots editable
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.classList.add('editable-mode');
+            
+            // Make time editable
+            const timeElement = slot.querySelector('.time');
+            if (timeElement) {
+                timeElement.contentEditable = true;
+                timeElement.classList.add('editable-field');
+            }
+            
+            // Make session title editable
+            const titleElement = slot.querySelector('.session h4');
+            if (titleElement) {
+                titleElement.contentEditable = true;
+                titleElement.classList.add('editable-field');
+            }
+            
+            // Make session details editable
+            const detailElements = slot.querySelectorAll('.session p');
+            detailElements.forEach(detail => {
+                detail.contentEditable = true;
+                detail.classList.add('editable-field');
+            });
+        });
+        
+        // Add save handlers
+        document.querySelectorAll('.editable-field').forEach(field => {
+            field.addEventListener('blur', () => {
+                this.saveData();
+                this.showMessage('Changes saved', 'success');
+            });
+            
+            field.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    field.blur();
+                }
+            });
+        });
+    }
+
+    disableAgendaEditing() {
+        // Remove editable attributes
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.classList.remove('editable-mode');
+            
+            // Remove contentEditable from all elements
+            const editableElements = slot.querySelectorAll('[contenteditable="true"]');
+            editableElements.forEach(element => {
+                element.contentEditable = false;
+                element.classList.remove('editable-field');
+            });
+        });
     }
 
     toggleColorMode() {
@@ -228,20 +281,6 @@ class OffsiteManager {
         // This would apply to a selected time slot
         // For now, just show a message
         this.showMessage(`Color category "${category}" ready. Click on an activity to apply.`, 'success');
-    }
-
-    editTimeSlot(slot) {
-        const session = slot.querySelector('.session h4');
-        if (!session) return;
-
-        const currentText = session.textContent;
-        const newText = prompt('Edit activity name:', currentText);
-        
-        if (newText && newText !== currentText) {
-            session.textContent = newText;
-            this.showMessage('Activity updated', 'success');
-            this.saveData();
-        }
     }
 
     exportParticipants() {

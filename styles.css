@@ -211,6 +211,30 @@ body {
     margin-bottom: 0.3rem;
 }
 
+/* Editable Mode Styles */
+.time-slot.editable-mode {
+    border: 2px dashed var(--aws-orange);
+    background: rgba(255, 153, 0, 0.05);
+}
+
+.time-slot.editable-mode .editable-field {
+    cursor: text;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.time-slot.editable-mode .editable-field:hover {
+    background: rgba(255, 153, 0, 0.1);
+    outline: 1px dashed var(--aws-orange);
+}
+
+.time-slot.editable-mode .editable-field:focus {
+    background: rgba(75, 156, 211, 0.1);
+    outline: 2px solid var(--aws-light-blue);
+    outline-offset: 1px;
+}
+
 /* Activity Type Colors */
 .time-slot.meeting {
     border-left: 4px solid var(--meeting-color);
