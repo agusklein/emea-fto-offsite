@@ -9,18 +9,6 @@
 <body>
     <header class="header">
         <div class="container">
-            <div class="aws-logo">
-                <div class="logo-container">
-                    <span class="amazon-text">amazon</span>
-                    <div class="aws-smile">
-                        <svg width="80" height="20" viewBox="0 0 80 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M27.5 15.5c-7.5 0-14-2.8-18.8-7.4-.4-.4-.1-.9.4-.6 4.2 2.4 9.4 3.9 14.8 3.9 3.6 0 7.6-.7 11.3-2.2.5-.2 1 .4.5.9-2.4 2.1-5.5 3.7-8.2 4.4z" fill="#FF9900"/>
-                            <path d="M29.2 13.6c-.8-1-.5-2.4.3-3.4.2-.3.6-.1.6.3-.1 1.2.4 1.9 1 2.5.2.2.1.6-.2.6-.6 0-1.2-.4-1.7-1z" fill="#FF9900"/>
-                        </svg>
-                    </div>
-                    <span class="aws-text">web services</span>
-                </div>
-            </div>
             <h1>EMEA FTO Offsite - Barcelona, October 2025</h1>
         </div>
     </header>
@@ -45,273 +33,151 @@
         <section class="agenda">
             <h2 contenteditable="true" class="editable-title">📅 Offsite Agenda</h2>
             
-            <!-- Activity Management Controls -->
-            <div class="activity-controls">
-                <button id="add-activity-btn" class="control-btn">➕ Add New Activity</button>
-                <button id="color-picker-btn" class="control-btn">🎨 Change Colors</button>
-                <button id="delete-mode-btn" class="control-btn">🗑️ Delete Mode</button>
+            <!-- Table Management Controls -->
+            <div class="table-controls">
+                <button id="add-activity-btn" class="control-btn">➕ Add Activity</button>
+                <button id="edit-mode-btn" class="control-btn">✏️ Edit Mode</button>
+                <button id="export-agenda-btn" class="control-btn">📤 Export</button>
             </div>
             
-            <!-- Color Picker Modal -->
-            <div id="color-picker-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h3>Choose Activity Color</h3>
-                    <div class="color-options">
-                        <div class="color-option" data-color="default" style="background: #f8f9fa; border-left: 4px solid #FF9900;">Default</div>
-                        <div class="color-option" data-color="lunch" style="background: #fff3cd; border-left: 4px solid #ffc107;">Lunch</div>
-                        <div class="color-option" data-color="dinner" style="background: #d1ecf1; border-left: 4px solid #17a2b8;">Dinner</div>
-                        <div class="color-option" data-color="arrival" style="background: #d4edda; border-left: 4px solid #28a745;">Arrival</div>
-                        <div class="color-option" data-color="break" style="background: #f8d7da; border-left: 4px solid #dc3545;">Break</div>
-                        <div class="color-option" data-color="workshop" style="background: #e2e3f0; border-left: 4px solid #6f42c1;">Workshop</div>
-                        <div class="color-option" data-color="presentation" style="background: #fff0f6; border-left: 4px solid #e83e8c;">Presentation</div>
-                        <div class="color-option" data-color="networking" style="background: #e8f4f8; border-left: 4px solid #20c997;">Networking</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="calendar-grid">
-                <div class="day-card">
-                    <h3 contenteditable="true" class="editable-day">Tuesday, October 14th</h3>
-                    <div class="add-activity-btn-container">
-                        <button class="add-activity-day-btn" data-day="0">➕</button>
-                    </div>
-                    <div class="time-slot arrival">
-                        <div class="time" contenteditable="true">8pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Arrival to Barcelona</h4>
-                            <p contenteditable="true">Team members arrive and check in</p>
-                        </div>
-                    </div>
-                    <div class="time-slot dinner">
-                        <div class="time" contenteditable="true">8pm to 10pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Dinner</h4>
-                            <p contenteditable="true">Welcome dinner</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="day-card">
-                    <h3 contenteditable="true" class="editable-day">Wednesday, October 15th</h3>
-                    <div class="add-activity-btn-container">
-                        <button class="add-activity-day-btn" data-day="1">➕</button>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">9am to 9:30am</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Welcome & Intro</h4>
-                            <p contenteditable="true">Led by Marta & Agus</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">9:30am to 12pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Team Catch Up and Updates</h4>
-                            <p contenteditable="true">Led by Erin & Agus</p>
-                        </div>
-                    </div>
-                    <div class="time-slot lunch">
-                        <div class="time" contenteditable="true">12pm to 1pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Lunch</h4>
-                            <p contenteditable="true">Team meal</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">1:15pm to 2:45pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Tech Goals</h4>
-                            <p contenteditable="true">Led by Emmanuele & Agus</p>
-                        </div>
-                    </div>
-                    <div class="time-slot break">
-                        <div class="time" contenteditable="true">2:45pm to 3pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Break</h4>
-                            <p contenteditable="true">Short break</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">3pm to 5pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Team Culture</h4>
-                            <p contenteditable="true">Led by Julian & Agus</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="day-card">
-                    <h3 contenteditable="true" class="editable-day">Thursday, October 16th</h3>
-                    <div class="add-activity-btn-container">
-                        <button class="add-activity-day-btn" data-day="2">➕</button>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">9am to 10am</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Specialists</h4>
-                            <p contenteditable="true">Led by Myriam & Alberto & Erin</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">10:30am to 11am</div>
-                        <div class="session">
-                            <h4 contenteditable="true">GenAI Business</h4>
-                            <p contenteditable="true">Led by Garay & Erin</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">11am to 12pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">GenAI Demo</h4>
-                            <p contenteditable="true">Led by Igal & Erin</p>
-                        </div>
-                    </div>
-                    <div class="time-slot lunch">
-                        <div class="time" contenteditable="true">12pm to 1:30pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Lunch</h4>
-                            <p contenteditable="true">Team meal</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">1:30pm to 4:30pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">GenAI Working Group</h4>
-                            <p contenteditable="true">Led by Erin</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">4:30pm to 5:30pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Team Building</h4>
-                            <p contenteditable="true">Team activities</p>
-                        </div>
-                    </div>
-                    <div class="time-slot dinner">
-                        <div class="time" contenteditable="true">8pm to 10pm</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Dinner</h4>
-                            <p contenteditable="true">Team dinner</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="day-card">
-                    <h3 contenteditable="true" class="editable-day">Friday, October 17th</h3>
-                    <div class="add-activity-btn-container">
-                        <button class="add-activity-day-btn" data-day="3">➕</button>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">9:30am to 10:30am</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Future of FTO Role</h4>
-                            <p contenteditable="true">Led by Agus</p>
-                        </div>
-                    </div>
-                    <div class="time-slot">
-                        <div class="time" contenteditable="true">10:30am to 11am</div>
-                        <div class="session">
-                            <h4 contenteditable="true">Offsite Closure</h4>
-                            <p contenteditable="true">Led by Marta & Agus</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="table-wrapper">
+                <table class="agenda-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Activity Description</th>
+                            <th>Time</th>
+                            <th>Led By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2" class="day-cell">Tuesday, Oct 14</td>
+                            <td contenteditable="true">Arrival to Barcelona</td>
+                            <td contenteditable="true">8pm</td>
+                            <td contenteditable="true">-</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Welcome Dinner</td>
+                            <td contenteditable="true">8pm to 10pm</td>
+                            <td contenteditable="true">-</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="6" class="day-cell">Wednesday, Oct 15</td>
+                            <td contenteditable="true">Welcome & Intro</td>
+                            <td contenteditable="true">9am to 9:30am</td>
+                            <td contenteditable="true">Marta & Agus</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Team Catch Up and Updates</td>
+                            <td contenteditable="true">9:30am to 12pm</td>
+                            <td contenteditable="true">Erin & Agus</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Lunch</td>
+                            <td contenteditable="true">12pm to 1pm</td>
+                            <td contenteditable="true">-</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Tech Goals</td>
+                            <td contenteditable="true">1:15pm to 2:45pm</td>
+                            <td contenteditable="true">Emmanuele & Agus</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Break</td>
+                            <td contenteditable="true">2:45pm to 3pm</td>
+                            <td contenteditable="true">-</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Team Culture</td>
+                            <td contenteditable="true">3pm to 5pm</td>
+                            <td contenteditable="true">Julian & Agus</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="7" class="day-cell">Thursday, Oct 16</td>
+                            <td contenteditable="true">Specialists</td>
+                            <td contenteditable="true">9am to 10am</td>
+                            <td contenteditable="true">Myriam & Alberto & Erin</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">GenAI Business</td>
+                            <td contenteditable="true">10:30am to 11am</td>
+                            <td contenteditable="true">Garay & Erin</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">GenAI Demo</td>
+                            <td contenteditable="true">11am to 12pm</td>
+                            <td contenteditable="true">Igal & Erin</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Lunch</td>
+                            <td contenteditable="true">12pm to 1:30pm</td>
+                            <td contenteditable="true">-</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">GenAI Working Group</td>
+                            <td contenteditable="true">1:30pm to 4:30pm</td>
+                            <td contenteditable="true">Erin</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Team Building</td>
+                            <td contenteditable="true">4:30pm to 5:30pm</td>
+                            <td contenteditable="true">-</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Dinner</td>
+                            <td contenteditable="true">8pm to 10pm</td>
+                            <td contenteditable="true">-</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2" class="day-cell">Friday, Oct 17</td>
+                            <td contenteditable="true">Future of FTO Role</td>
+                            <td contenteditable="true">9:30am to 10:30am</td>
+                            <td contenteditable="true">Agus</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Offsite Closure</td>
+                            <td contenteditable="true">10:30am to 11am</td>
+                            <td contenteditable="true">Marta & Agus</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 
         <!-- PARTICIPANTS SECTION -->
         <section class="participants">
             <h2 contenteditable="true">👥 Participants & Travel Information</h2>
+            
+            <!-- Table Management Controls -->
+            <div class="table-controls">
+                <button id="add-participant-btn" class="control-btn">➕ Add Participant</button>
+                <button id="edit-participants-btn" class="control-btn">✏️ Edit Mode</button>
+                <button id="export-participants-btn" class="control-btn">📤 Export CSV</button>
+            </div>
+            
             <div class="table-container">
                 <table id="participantsTable">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Participants</th>
                             <th>Dietary Restrictions</th>
-                            <th>Arrival Date/Time</th>
-                            <th>Departure Date/Time</th>
+                            <th>Arrival Time</th>
+                            <th>Departure Time</th>
                             <th>Hotel</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- Participants data will be populated from Excel -->
                         <tr>
-                            <td contenteditable="true" class="editable">Marta Gonzalez</td>
-                            <td contenteditable="true" class="editable">None</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Agus Klein</td>
-                            <td contenteditable="true" class="editable">None</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Erin Carlson</td>
-                            <td contenteditable="true" class="editable">Vegetarian</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Emmanuele Ricci</td>
-                            <td contenteditable="true" class="editable">None</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Julian Martinez</td>
-                            <td contenteditable="true" class="editable">None</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Myriam Dubois</td>
-                            <td contenteditable="true" class="editable">Gluten-free</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Alberto Silva</td>
-                            <td contenteditable="true" class="editable">None</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Garay Johnson</td>
-                            <td contenteditable="true" class="editable">None</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true" class="editable">Igal Cohen</td>
-                            <td contenteditable="true" class="editable">Kosher</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td contenteditable="true" class="editable">Click to edit</td>
-                            <td><button onclick="deleteRow(this)" class="delete-btn">Delete</button></td>
+                            <td contenteditable="true" class="editable">Please update with Excel data</td>
+                            <td contenteditable="true" class="editable">-</td>
+                            <td contenteditable="true" class="editable">-</td>
+                            <td contenteditable="true" class="editable">-</td>
+                            <td contenteditable="true" class="editable">-</td>
                         </tr>
                     </tbody>
                 </table>
-                <button onclick="addRow()" class="add-btn">Add Participant</button>
-                <button onclick="exportToCSV()" class="export-btn">Export to CSV</button>
             </div>
         </section>
 
