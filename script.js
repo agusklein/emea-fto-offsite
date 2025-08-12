@@ -37,10 +37,31 @@ class OffsiteManager {
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
 
-        // Auto-save on content changes
+        // Auto-save on content changes for ALL editable elements
         document.addEventListener('input', (e) => {
             if (e.target.contentEditable === 'true') {
                 this.scheduleAutoSave();
+            }
+        });
+
+        // Auto-save when losing focus on editable elements
+        document.addEventListener('blur', (e) => {
+            if (e.target.contentEditable === 'true') {
+                this.saveData();
+                this.showMessage('Changes saved automatically', 'success');
+            }
+        }, true);
+
+        // Handle Enter key in editable elements
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.contentEditable === 'true') {
+                // Allow Enter in paragraph elements, but blur for titles
+                if (e.target.tagName === 'H1' || e.target.tagName === 'H2' || 
+                    e.target.tagName === 'H3' || e.target.tagName === 'H4' || 
+                    e.target.classList.contains('day-subtitle')) {
+                    e.preventDefault();
+                    e.target.blur();
+                }
             }
         });
 
@@ -340,12 +361,31 @@ class OffsiteManager {
     saveData() {
         const data = {
             participants: this.getParticipantsData(),
+            editableContent: this.getAllEditableContent(),
             lastModified: new Date().toISOString(),
             version: '1.0'
         };
         
         localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
         this.updateLastModified();
+    }
+
+    getAllEditableContent() {
+        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+        const content = {};
+        
+        editableElements.forEach((element, index) => {
+            // Create a unique identifier for each editable element
+            const id = element.id || `editable-${index}`;
+            content[id] = {
+                tagName: element.tagName,
+                className: element.className,
+                innerHTML: element.innerHTML,
+                textContent: element.textContent
+            };
+        });
+        
+        return content;
     }
 
     loadData() {

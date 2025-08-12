@@ -21,6 +21,72 @@
     --font-family: 'Amazon Ember', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Global Editable Elements */
+[contenteditable="true"] {
+    cursor: text;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+}
+
+[contenteditable="true"]:hover {
+    background: rgba(255, 153, 0, 0.1);
+    outline: 1px dashed var(--aws-orange);
+}
+
+[contenteditable="true"]:focus {
+    background: rgba(75, 156, 211, 0.15);
+    outline: 2px solid var(--aws-light-blue);
+    outline-offset: 1px;
+}
+
+/* Header Title Editable */
+.header h1[contenteditable="true"]:hover {
+    background: rgba(255, 255, 255, 0.1);
+    outline: 1px dashed rgba(255, 255, 255, 0.5);
+}
+
+.header h1[contenteditable="true"]:focus {
+    background: rgba(255, 255, 255, 0.2);
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Section Titles Editable */
+.section-title[contenteditable="true"]:hover {
+    background: rgba(255, 153, 0, 0.1);
+    outline: 1px dashed var(--aws-orange);
+}
+
+.section-title[contenteditable="true"]:focus {
+    background: rgba(75, 156, 211, 0.1);
+    outline: 2px solid var(--aws-light-blue);
+}
+
+/* Day Headers Editable */
+.day-header h3[contenteditable="true"]:hover,
+.day-header .day-subtitle[contenteditable="true"]:hover {
+    background: rgba(255, 255, 255, 0.2);
+    outline: 1px dashed rgba(255, 255, 255, 0.5);
+}
+
+.day-header h3[contenteditable="true"]:focus,
+.day-header .day-subtitle[contenteditable="true"]:focus {
+    background: rgba(255, 255, 255, 0.3);
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Info Cards Editable */
+.info-card [contenteditable="true"]:hover {
+    background: rgba(255, 153, 0, 0.1);
+    outline: 1px dashed var(--aws-orange);
+}
+
+.info-card [contenteditable="true"]:focus {
+    background: rgba(75, 156, 211, 0.1);
+    outline: 2px solid var(--aws-light-blue);
+}
+
 /* Global Styles */
 * {
     margin: 0;
