@@ -961,18 +961,20 @@ tr:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
+    font-size: 0.85em;
 }
 
 .agenda-table th {
     background: var(--aws-dark-blue);
     color: white;
-    padding: 15px;
+    padding: 12px 8px;
     text-align: left;
     font-weight: 600;
+    font-size: 0.9em;
 }
 
 .agenda-table td {
-    padding: 12px 15px;
+    padding: 10px 8px;
     border-bottom: 1px solid #e0e0e0;
     vertical-align: top;
 }
@@ -984,6 +986,7 @@ tr:hover {
     text-align: center;
     vertical-align: middle;
     border-right: 2px solid var(--aws-orange);
+    min-width: 100px;
 }
 
 .agenda-table tr:hover {
