@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeColorPickers();
     initializeDragAndDrop();
     initializeAddActivityButtons();
+    initializeAutoSave();
     loadSavedData();
     
     // Auto-save every 30 seconds
@@ -63,7 +64,20 @@ function initializeButtons() {
     
     const saveDataBtn = document.getElementById('save-data-btn');
     if (saveDataBtn) {
-        saveDataBtn.addEventListener('click', saveAllData);
+        saveDataBtn.addEventListener('click', () => {
+            saveAllData();
+            showMessage('All data saved manually!', 'success');
+            
+            // Visual feedback on save button
+            const originalText = saveDataBtn.textContent;
+            saveDataBtn.textContent = '✅ Saved!';
+            saveDataBtn.style.background = '#28a745';
+            
+            setTimeout(() => {
+                saveDataBtn.textContent = originalText;
+                saveDataBtn.style.background = '';
+            }, 2000);
+        });
     }
 }
 
@@ -313,7 +327,62 @@ function applyLegendColor(color, typeClass) {
     closeColorModal();
 }
 
-// Initialize drag and drop for reordering
+// Initialize comprehensive auto-save system
+function initializeAutoSave() {
+    console.log('Initializing auto-save system...');
+    
+    // Save on any input change
+    document.addEventListener('input', function(e) {
+        if (e.target.contentEditable === 'true') {
+            console.log('Content changed, scheduling save...');
+            debouncedSave();
+        }
+    });
+    
+    // Save when losing focus on editable elements
+    document.addEventListener('blur', function(e) {
+        if (e.target.contentEditable === 'true') {
+            console.log('Element lost focus, saving...');
+            saveAllData();
+            showMessage('Changes saved', 'success');
+        }
+    }, true);
+    
+    // Save on Enter key in editable elements
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.contentEditable === 'true') {
+            console.log('Enter pressed, saving...');
+            setTimeout(() => {
+                saveAllData();
+                showMessage('Changes saved', 'success');
+            }, 100);
+        }
+    });
+    
+    // Save before page unload
+    window.addEventListener('beforeunload', function(e) {
+        console.log('Page unloading, saving data...');
+        saveAllData();
+    });
+    
+    // Periodic auto-save every 30 seconds
+    setInterval(() => {
+        console.log('Periodic auto-save...');
+        saveAllData();
+    }, 30000);
+    
+    console.log('Auto-save system initialized');
+}
+
+// Debounced save function to avoid too frequent saves
+let saveTimeout;
+function debouncedSave() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        saveAllData();
+        showMessage('Auto-saved', 'success');
+    }, 1000); // Save 1 second after last change
+}
 function initializeDragAndDrop() {
     document.querySelectorAll('.time-slot').forEach(slot => {
         slot.draggable = true;
@@ -731,11 +800,124 @@ function saveAllData() {
         agenda: getAgendaData(),
         participants: getParticipantsData(),
         colors: getColorData(),
+        editableContent: getAllEditableContent(),
+        tableStructure: getTableStructure(),
         lastModified: new Date().toISOString()
     };
     
-    localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
-    console.log('Data saved successfully');
+    try {
+        localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
+        console.log('Data saved successfully:', data);
+        updateSaveStatus('saved');
+        return true;
+    } catch (e) {
+        console.error('Error saving data:', e);
+        showMessage('Error saving data: ' + e.message, 'error');
+        updateSaveStatus('error');
+        return false;
+    }
+}
+
+function updateSaveStatus(status) {
+    const saveBtn = document.getElementById('save-data-btn');
+    if (!saveBtn) return;
+    
+    const now = new Date().toLocaleTimeString();
+    
+    switch (status) {
+        case 'saved':
+            saveBtn.title = `Last saved: ${now}`;
+            break;
+        case 'error':
+            saveBtn.title = `Save error at ${now}`;
+            break;
+        case 'saving':
+            saveBtn.title = 'Saving...';
+            break;
+    }
+}
+
+function getAllEditableContent() {
+    const editableContent = {};
+    
+    // Save all contenteditable elements
+    document.querySelectorAll('[contenteditable="true"]').forEach((element, index) => {
+        const id = element.id || `editable-${element.tagName}-${index}`;
+        editableContent[id] = {
+            tagName: element.tagName,
+            className: element.className,
+            textContent: element.textContent,
+            innerHTML: element.innerHTML,
+            selector: getElementSelector(element)
+        };
+    });
+    
+    return editableContent;
+}
+
+function getElementSelector(element) {
+    // Create a unique selector for the element
+    if (element.id) return `#${element.id}`;
+    
+    let selector = element.tagName.toLowerCase();
+    
+    // Add class if available
+    if (element.className) {
+        selector += '.' + element.className.split(' ').join('.');
+    }
+    
+    // Add position within parent
+    const parent = element.parentElement;
+    if (parent) {
+        const siblings = Array.from(parent.children).filter(child => 
+            child.tagName === element.tagName && 
+            child.className === element.className
+        );
+        if (siblings.length > 1) {
+            const index = siblings.indexOf(element);
+            selector += `:nth-of-type(${index + 1})`;
+        }
+    }
+    
+    return selector;
+}
+
+function getTableStructure() {
+    const table = document.getElementById('participantsTable');
+    if (!table) return null;
+    
+    const structure = {
+        headers: [],
+        rows: []
+    };
+    
+    // Save headers
+    const headers = table.querySelectorAll('thead th');
+    headers.forEach(header => {
+        structure.headers.push({
+            text: header.textContent,
+            editable: header.contentEditable === 'true'
+        });
+    });
+    
+    // Save all row data
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const rowData = [];
+        const cells = row.querySelectorAll('td');
+        cells.forEach((cell, index) => {
+            if (index < cells.length - 1) { // Exclude Actions column
+                rowData.push({
+                    text: cell.textContent,
+                    editable: cell.contentEditable === 'true',
+                    className: cell.className
+                });
+            }
+        });
+        structure.rows.push(rowData);
+    });
+    
+    return structure;
 }
 
 function loadSavedData() {
@@ -743,14 +925,84 @@ function loadSavedData() {
     if (saved) {
         try {
             const data = JSON.parse(saved);
+            console.log('Loading saved data:', data);
+            
+            // Load colors first
             if (data.colors) {
                 loadColorData(data.colors);
             }
+            
+            // Load editable content
+            if (data.editableContent) {
+                loadEditableContent(data.editableContent);
+            }
+            
+            // Load table structure
+            if (data.tableStructure) {
+                loadTableStructure(data.tableStructure);
+            }
+            
+            // Show last modified time
+            if (data.lastModified) {
+                const lastModified = new Date(data.lastModified).toLocaleString();
+                console.log('Data last modified:', lastModified);
+                showMessage(`Data loaded from ${lastModified}`, 'success');
+            }
+            
             console.log('Data loaded successfully');
         } catch (e) {
             console.error('Error loading saved data:', e);
+            showMessage('Error loading saved data', 'error');
         }
+    } else {
+        console.log('No saved data found');
     }
+}
+
+function loadEditableContent(editableContent) {
+    Object.keys(editableContent).forEach(id => {
+        const data = editableContent[id];
+        let element = null;
+        
+        // Try to find element by ID first
+        if (id.startsWith('editable-')) {
+            element = document.querySelector(data.selector);
+        } else {
+            element = document.getElementById(id);
+        }
+        
+        if (element && element.contentEditable === 'true') {
+            element.textContent = data.textContent;
+            console.log(`Restored content for ${data.selector}:`, data.textContent);
+        }
+    });
+}
+
+function loadTableStructure(tableStructure) {
+    const table = document.getElementById('participantsTable');
+    if (!table || !tableStructure) return;
+    
+    // Load headers
+    const headers = table.querySelectorAll('thead th');
+    tableStructure.headers.forEach((headerData, index) => {
+        if (headers[index] && headerData.editable) {
+            headers[index].textContent = headerData.text;
+        }
+    });
+    
+    // Load row data
+    const rows = table.querySelectorAll('tbody tr');
+    tableStructure.rows.forEach((rowData, rowIndex) => {
+        if (rows[rowIndex]) {
+            const cells = rows[rowIndex].querySelectorAll('td');
+            rowData.forEach((cellData, cellIndex) => {
+                if (cells[cellIndex] && cellData.editable) {
+                    cells[cellIndex].textContent = cellData.text;
+                    cells[cellIndex].className = cellData.className;
+                }
+            });
+        }
+    });
 }
 
 function getAgendaData() {
@@ -903,6 +1155,42 @@ function escapeCsv(text) {
     return text;
 }
 
+// Test save/load functionality
+function testSaveLoad() {
+    console.log('Testing save/load functionality...');
+    
+    // Save current state
+    const saveResult = saveAllData();
+    if (!saveResult) {
+        console.error('Save test failed');
+        return false;
+    }
+    
+    // Check if data exists in localStorage
+    const saved = localStorage.getItem('emea-fto-offsite-data');
+    if (!saved) {
+        console.error('No data found in localStorage after save');
+        return false;
+    }
+    
+    try {
+        const data = JSON.parse(saved);
+        console.log('Save/load test successful. Data size:', JSON.stringify(data).length, 'characters');
+        console.log('Saved data includes:', Object.keys(data));
+        return true;
+    } catch (e) {
+        console.error('Error parsing saved data:', e);
+        return false;
+    }
+}
+
+// Clear all saved data (for testing)
+function clearSavedData() {
+    localStorage.removeItem('emea-fto-offsite-data');
+    console.log('All saved data cleared');
+    showMessage('All saved data cleared', 'success');
+}
+
 // Make functions globally available
 window.deleteParticipant = deleteParticipant;
 window.applyColor = applyColor;
@@ -912,5 +1200,7 @@ window.applyLegendColor = applyLegendColor;
 window.closeAddActivityModal = closeAddActivityModal;
 window.closeAddColumnModal = closeAddColumnModal;
 window.selectDay = selectDay;
+window.testSaveLoad = testSaveLoad;
+window.clearSavedData = clearSavedData;
 
 console.log('All functionality initialized successfully!');
