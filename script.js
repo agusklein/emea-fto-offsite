@@ -17,7 +17,10 @@ class OffsiteManager {
             free: { name: '🆓 Free Time', color: '#95E1D3' },
             arrival: { name: '✈️ Arrival', color: '#FFA726' }
         };
+        this.individualActivityColors = {}; // Track individual activity colors
         
+        this.init();
+    }
         this.init();
     }
 
@@ -53,6 +56,11 @@ class OffsiteManager {
             if (e.target.classList.contains('color-picker-btn')) {
                 const activityType = e.target.dataset.type;
                 this.openColorPicker(activityType);
+            }
+            if (e.target.classList.contains('activity-color-btn')) {
+                e.stopPropagation(); // Prevent time-slot click
+                const activityId = e.target.dataset.activity;
+                this.openActivityColorPicker(activityId, e.target);
             }
         });
 
@@ -451,6 +459,111 @@ class OffsiteManager {
         });
     }
 
+    openActivityColorPicker(activityId, buttonElement) {
+        const timeSlot = buttonElement.closest('.time-slot');
+        const activityTitle = timeSlot.querySelector('h4').textContent;
+        const modal = this.createActivityColorPickerModal(activityId, activityTitle, timeSlot);
+        document.body.appendChild(modal);
+    }
+
+    createActivityColorPickerModal(activityId, activityTitle, timeSlot) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        const modal = document.createElement('div');
+        modal.className = 'color-picker-modal';
+        
+        const currentColor = this.individualActivityColors[activityId] || 
+                           this.getDefaultColorForActivity(timeSlot);
+        
+        modal.innerHTML = `
+            <h3>Choose Color for "${activityTitle}"</h3>
+            <div class="color-options">
+                <div class="color-option" style="background: #4B9CD3" data-color="#4B9CD3"></div>
+                <div class="color-option" style="background: #FF9900" data-color="#FF9900"></div>
+                <div class="color-option" style="background: #8C4FFF" data-color="#8C4FFF"></div>
+                <div class="color-option" style="background: #FF6B6B" data-color="#FF6B6B"></div>
+                <div class="color-option" style="background: #4ECDC4" data-color="#4ECDC4"></div>
+                <div class="color-option" style="background: #95E1D3" data-color="#95E1D3"></div>
+                <div class="color-option" style="background: #FFA726" data-color="#FFA726"></div>
+                <div class="color-option" style="background: #E74C3C" data-color="#E74C3C"></div>
+                <div class="color-option" style="background: #9B59B6" data-color="#9B59B6"></div>
+                <div class="color-option" style="background: #2ECC71" data-color="#2ECC71"></div>
+                <div class="color-option" style="background: #F39C12" data-color="#F39C12"></div>
+                <div class="color-option" style="background: #34495E" data-color="#34495E"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                <button class="modal-btn" style="background: #dc3545; color: white;" id="reset-color-btn">Reset to Default</button>
+                <button class="modal-btn primary" id="apply-activity-color-btn">Apply</button>
+            </div>
+        `;
+
+        let selectedColor = currentColor;
+
+        // Handle color selection
+        modal.querySelectorAll('.color-option').forEach(option => {
+            if (option.dataset.color === currentColor) {
+                option.classList.add('selected');
+            }
+            
+            option.addEventListener('click', () => {
+                modal.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedColor = option.dataset.color;
+            });
+        });
+
+        // Handle apply button
+        modal.querySelector('#apply-activity-color-btn').addEventListener('click', () => {
+            this.updateIndividualActivityColor(activityId, selectedColor, timeSlot);
+            overlay.remove();
+        });
+
+        // Handle reset button
+        modal.querySelector('#reset-color-btn').addEventListener('click', () => {
+            this.resetIndividualActivityColor(activityId, timeSlot);
+            overlay.remove();
+        });
+
+        // Handle overlay click to close
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+
+        overlay.appendChild(modal);
+        return overlay;
+    }
+
+    getDefaultColorForActivity(timeSlot) {
+        const category = timeSlot.dataset.category;
+        return this.activityTypes[category]?.color || '#6C757D';
+    }
+
+    updateIndividualActivityColor(activityId, newColor, timeSlot) {
+        this.individualActivityColors[activityId] = newColor;
+        this.applyIndividualActivityColor(activityId, newColor, timeSlot);
+        this.saveData();
+        this.showMessage('Activity color updated successfully', 'success');
+    }
+
+    resetIndividualActivityColor(activityId, timeSlot) {
+        delete this.individualActivityColors[activityId];
+        const defaultColor = this.getDefaultColorForActivity(timeSlot);
+        this.applyIndividualActivityColor(activityId, defaultColor, timeSlot);
+        this.saveData();
+        this.showMessage('Activity color reset to default', 'success');
+    }
+
+    applyIndividualActivityColor(activityId, color, timeSlot) {
+        // Apply the color directly to the time slot
+        timeSlot.style.borderLeftColor = color;
+        timeSlot.style.borderLeftWidth = '4px';
+        timeSlot.style.borderLeftStyle = 'solid';
+    }
+
     updateActivityTypeStyles() {
         // Create or update dynamic styles for activity types
         let styleElement = document.getElementById('dynamic-activity-styles');
@@ -466,6 +579,14 @@ class OffsiteManager {
             css += `
                 .legend-item.${typeId} { background: ${color} !important; }
                 .time-slot.${typeId} { border-left: 4px solid ${color} !important; }
+            `;
+        });
+
+        // Add individual activity colors
+        Object.keys(this.individualActivityColors).forEach(activityId => {
+            const color = this.individualActivityColors[activityId];
+            css += `
+                .time-slot[data-activity="${activityId}"] { border-left: 4px solid ${color} !important; }
             `;
         });
 
@@ -531,6 +652,7 @@ class OffsiteManager {
             participants: this.getParticipantsData(),
             editableContent: this.getAllEditableContent(),
             activityTypes: this.activityTypes,
+            individualActivityColors: this.individualActivityColors,
             lastModified: new Date().toISOString(),
             version: '1.0'
         };
@@ -566,11 +688,26 @@ class OffsiteManager {
                 if (data.activityTypes) {
                     this.activityTypes = { ...this.activityTypes, ...data.activityTypes };
                 }
+                if (data.individualActivityColors) {
+                    this.individualActivityColors = data.individualActivityColors;
+                    // Apply individual colors after loading
+                    setTimeout(() => this.applyLoadedIndividualColors(), 100);
+                }
                 // Load participants back to table if needed
             } catch (e) {
                 console.error('Error loading saved data:', e);
             }
         }
+    }
+
+    applyLoadedIndividualColors() {
+        Object.keys(this.individualActivityColors).forEach(activityId => {
+            const color = this.individualActivityColors[activityId];
+            const timeSlot = document.querySelector(`[data-activity="${activityId}"]`);
+            if (timeSlot) {
+                this.applyIndividualActivityColor(activityId, color, timeSlot);
+            }
+        });
     }
 
     getParticipantsData() {
