@@ -333,8 +333,6 @@ function addParticipant() {
         <td contenteditable="true">-</td>
         <td contenteditable="true">-</td>
         <td contenteditable="true">-</td>
-        <td contenteditable="true">-</td>
-        <td contenteditable="true">-</td>
         <td><button onclick="deleteParticipant(this)">🗑️</button></td>
     `;
     
