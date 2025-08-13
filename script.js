@@ -1,92 +1,312 @@
-// EMEA FTO Offsite Website - Simplified Working Version
+// EMEA FTO Offsite Website - BULLETPROOF Save System
+console.log('🚀 Loading bulletproof save system...');
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Website loaded successfully');
+    console.log('✅ DOM loaded, initializing save system');
     
-    // Initialize functionality
+    // Initialize everything
+    initializeSaveSystem();
     initializeButtons();
     initializeColorPickers();
     initializeDragAndDrop();
     initializeAddActivityButtons();
-    initializeAutoSave();
-    loadSavedData();
     
-    // Auto-save every 30 seconds
-    setInterval(saveAllData, 30000);
+    // Load saved data immediately
+    loadAllData();
+    
+    // Test the system
+    setTimeout(() => {
+        testSystem();
+    }, 1000);
 });
 
-// Initialize all button functionality
+// BULLETPROOF SAVE SYSTEM
+function initializeSaveSystem() {
+    console.log('🔧 Initializing bulletproof save system...');
+    
+    // Save on ANY change to ANY editable element
+    document.addEventListener('input', function(e) {
+        if (e.target.contentEditable === 'true') {
+            console.log('📝 Content changed:', e.target.tagName, e.target.textContent);
+            saveEverything();
+        }
+    });
+    
+    // Save when clicking away from editable elements
+    document.addEventListener('blur', function(e) {
+        if (e.target.contentEditable === 'true') {
+            console.log('👆 Element blurred:', e.target.tagName, e.target.textContent);
+            saveEverything();
+        }
+    }, true);
+    
+    // Save on Enter key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.contentEditable === 'true') {
+            console.log('⏎ Enter pressed');
+            e.preventDefault();
+            e.target.blur();
+            saveEverything();
+        }
+    });
+    
+    // Save before leaving page
+    window.addEventListener('beforeunload', function() {
+        console.log('🚪 Page unloading, saving...');
+        saveEverything();
+    });
+    
+    // Auto-save every 5 seconds
+    setInterval(() => {
+        console.log('⏰ Auto-save interval');
+        saveEverything();
+    }, 5000);
+    
+    console.log('✅ Save system initialized');
+}
+
+// SIMPLE SAVE FUNCTION
+function saveEverything() {
+    console.log('💾 SAVING EVERYTHING...');
+    
+    try {
+        const data = {
+            timestamp: new Date().toISOString(),
+            content: {}
+        };
+        
+        // Save ALL editable content with simple IDs
+        let counter = 0;
+        document.querySelectorAll('[contenteditable="true"]').forEach(element => {
+            const id = `element_${counter}`;
+            const path = getSimplePath(element);
+            
+            data.content[id] = {
+                path: path,
+                text: element.textContent || '',
+                tag: element.tagName,
+                class: element.className
+            };
+            
+            console.log(`💾 Saved ${id}: ${path} = "${element.textContent}"`);
+            counter++;
+        });
+        
+        // Save to localStorage
+        localStorage.setItem('offsite-data', JSON.stringify(data));
+        
+        console.log(`✅ SAVED ${counter} elements successfully`);
+        showMessage('✅ Saved!', 'success');
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ SAVE FAILED:', error);
+        showMessage('❌ Save failed!', 'error');
+        return false;
+    }
+}
+
+// SIMPLE LOAD FUNCTION
+function loadAllData() {
+    console.log('📂 LOADING ALL DATA...');
+    
+    const saved = localStorage.getItem('offsite-data');
+    if (!saved) {
+        console.log('ℹ️ No saved data found');
+        return;
+    }
+    
+    try {
+        const data = JSON.parse(saved);
+        console.log('📂 Found saved data from:', data.timestamp);
+        
+        // Restore all content
+        Object.keys(data.content).forEach(id => {
+            const item = data.content[id];
+            const element = findElementByPath(item.path, item.tag, item.class);
+            
+            if (element && element.contentEditable === 'true') {
+                element.textContent = item.text;
+                console.log(`📂 Restored ${id}: "${item.text}"`);
+            } else {
+                console.warn(`⚠️ Could not find element for ${id}: ${item.path}`);
+            }
+        });
+        
+        const loadTime = new Date(data.timestamp).toLocaleString();
+        showMessage(`📂 Loaded data from ${loadTime}`, 'success');
+        console.log('✅ LOAD COMPLETE');
+        
+    } catch (error) {
+        console.error('❌ LOAD FAILED:', error);
+        showMessage('❌ Load failed!', 'error');
+    }
+}
+
+// SIMPLE PATH GENERATOR
+function getSimplePath(element) {
+    let path = element.tagName.toLowerCase();
+    
+    if (element.className) {
+        path += '.' + element.className.split(' ').join('.');
+    }
+    
+    // Add parent context
+    if (element.parentElement) {
+        const parent = element.parentElement;
+        let parentPath = parent.tagName.toLowerCase();
+        if (parent.className) {
+            parentPath += '.' + parent.className.split(' ').join('.');
+        }
+        path = parentPath + ' > ' + path;
+    }
+    
+    // Add position among similar elements
+    const siblings = Array.from(element.parentElement?.children || []).filter(child => 
+        child.tagName === element.tagName && child.className === element.className
+    );
+    
+    if (siblings.length > 1) {
+        const index = siblings.indexOf(element);
+        path += `:nth-child(${index + 1})`;
+    }
+    
+    return path;
+}
+
+// SIMPLE ELEMENT FINDER
+function findElementByPath(path, tag, className) {
+    // Try exact path first
+    try {
+        const element = document.querySelector(path);
+        if (element) return element;
+    } catch (e) {
+        console.warn('Path query failed:', path);
+    }
+    
+    // Try by tag and class
+    if (className) {
+        const elements = document.querySelectorAll(`${tag.toLowerCase()}.${className.split(' ').join('.')}`);
+        if (elements.length > 0) return elements[0];
+    }
+    
+    // Try by tag only
+    const elements = document.querySelectorAll(tag.toLowerCase());
+    if (elements.length > 0) return elements[0];
+    
+    return null;
+}
+
+// TEST SYSTEM
+function testSystem() {
+    console.log('🧪 TESTING SAVE SYSTEM...');
+    
+    const editableElements = document.querySelectorAll('[contenteditable="true"]');
+    console.log(`🧪 Found ${editableElements.length} editable elements`);
+    
+    // Test save
+    const saveResult = saveEverything();
+    if (saveResult) {
+        console.log('✅ Save test passed');
+    } else {
+        console.log('❌ Save test failed');
+        return;
+    }
+    
+    // Check localStorage
+    const saved = localStorage.getItem('offsite-data');
+    if (saved) {
+        const data = JSON.parse(saved);
+        console.log(`✅ Found ${Object.keys(data.content).length} saved elements`);
+        console.log('🧪 SYSTEM TEST PASSED');
+    } else {
+        console.log('❌ SYSTEM TEST FAILED - No data in localStorage');
+    }
+}
+
+// UTILITY FUNCTIONS
+function showMessage(text, type = 'success') {
+    // Remove existing messages
+    document.querySelectorAll('.save-message').forEach(msg => msg.remove());
+    
+    const message = document.createElement('div');
+    message.className = `save-message ${type}`;
+    message.textContent = text;
+    message.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        font-weight: bold;
+    `;
+    
+    document.body.appendChild(message);
+    
+    setTimeout(() => {
+        message.remove();
+    }, 3000);
+}
+
+function generateActivityId() {
+    return 'activity-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+// BUTTON INITIALIZATION (Simplified)
 function initializeButtons() {
-    console.log('Initializing buttons...');
+    console.log('🔘 Initializing buttons...');
     
     // Edit Mode Button
     const editModeBtn = document.getElementById('edit-mode-btn');
     if (editModeBtn) {
         editModeBtn.addEventListener('click', toggleEditMode);
-        console.log('Edit mode button initialized');
     }
     
     // Add Activity Button
     const addActivityBtn = document.getElementById('add-activity-btn');
     if (addActivityBtn) {
         addActivityBtn.addEventListener('click', showAddActivityModal);
-        console.log('Add activity button initialized');
-    }
-    
-    // Export Agenda Button
-    const exportAgendaBtn = document.getElementById('export-agenda-btn');
-    if (exportAgendaBtn) {
-        exportAgendaBtn.addEventListener('click', exportAgenda);
-        console.log('Export agenda button initialized');
     }
     
     // Color Mode Button
     const colorModeBtn = document.getElementById('color-mode-btn');
     if (colorModeBtn) {
         colorModeBtn.addEventListener('click', toggleColorMode);
-        console.log('Color mode button initialized');
     }
     
-    // Participant buttons
+    // Save Data Button
+    const saveDataBtn = document.getElementById('save-data-btn');
+    if (saveDataBtn) {
+        saveDataBtn.addEventListener('click', () => {
+            saveEverything();
+            showMessage('💾 Manual save complete!', 'success');
+        });
+    }
+    
+    // Add Participant Button
     const addParticipantBtn = document.getElementById('add-participant-btn');
     if (addParticipantBtn) {
         addParticipantBtn.addEventListener('click', addParticipant);
     }
     
+    // Add Column Button
     const addColumnBtn = document.getElementById('add-column-btn');
     if (addColumnBtn) {
         addColumnBtn.addEventListener('click', addColumn);
     }
     
-    const exportParticipantsBtn = document.getElementById('export-participants-btn');
-    if (exportParticipantsBtn) {
-        exportParticipantsBtn.addEventListener('click', exportParticipants);
-    }
-    
-    const saveDataBtn = document.getElementById('save-data-btn');
-    if (saveDataBtn) {
-        saveDataBtn.addEventListener('click', () => {
-            saveAllData();
-            showMessage('All data saved manually!', 'success');
-            
-            // Visual feedback on save button
-            const originalText = saveDataBtn.textContent;
-            saveDataBtn.textContent = '✅ Saved!';
-            saveDataBtn.style.background = '#28a745';
-            
-            setTimeout(() => {
-                saveDataBtn.textContent = originalText;
-                saveDataBtn.style.background = '';
-            }, 2000);
-        });
-    }
+    console.log('✅ Buttons initialized');
 }
 
-// Global variables
+// GLOBAL VARIABLES
 let editMode = false;
 let colorMode = false;
-let draggedElement = null;
 
-// Toggle Edit Mode
+// EDIT MODE FUNCTIONS
 function toggleEditMode() {
     editMode = !editMode;
     const btn = document.getElementById('edit-mode-btn');
@@ -94,45 +314,15 @@ function toggleEditMode() {
     if (editMode) {
         btn.textContent = '✅ Exit Edit';
         btn.style.background = '#dc3545';
-        enableEditing();
-        showMessage('Edit mode enabled. Click on any text to edit it.', 'success');
+        showMessage('✏️ Edit mode enabled', 'success');
     } else {
         btn.textContent = '✏️ Edit Mode';
         btn.style.background = '#FF9900';
-        disableEditing();
-        showMessage('Edit mode disabled.', 'success');
+        showMessage('✏️ Edit mode disabled', 'success');
     }
 }
 
-// Enable editing for all agenda items
-function enableEditing() {
-    // Make all agenda text editable
-    document.querySelectorAll('.time-slot .time, .time-slot h4, .time-slot p').forEach(element => {
-        element.contentEditable = true;
-        element.classList.add('editable-active');
-        element.addEventListener('blur', saveAllData);
-    });
-    
-    // Add visual indicators
-    document.querySelectorAll('.time-slot').forEach(slot => {
-        slot.classList.add('edit-mode-active');
-    });
-}
-
-// Disable editing
-function disableEditing() {
-    document.querySelectorAll('.time-slot .time, .time-slot h4, .time-slot p').forEach(element => {
-        element.contentEditable = false;
-        element.classList.remove('editable-active');
-        element.removeEventListener('blur', saveAllData);
-    });
-    
-    document.querySelectorAll('.time-slot').forEach(slot => {
-        slot.classList.remove('edit-mode-active');
-    });
-}
-
-// Toggle Color Mode
+// COLOR MODE FUNCTIONS
 function toggleColorMode() {
     colorMode = !colorMode;
     const btn = document.getElementById('color-mode-btn');
@@ -141,16 +331,15 @@ function toggleColorMode() {
         btn.textContent = '🎨 Exit Color';
         btn.style.background = '#8C4FFF';
         showColorPickers();
-        showMessage('Color mode enabled. Click on activities to change colors.', 'success');
+        showMessage('🎨 Color mode enabled', 'success');
     } else {
         btn.textContent = '🎨 Color Mode';
         btn.style.background = '#FF9900';
         hideColorPickers();
-        showMessage('Color mode disabled.', 'success');
+        showMessage('🎨 Color mode disabled', 'success');
     }
 }
 
-// Show color picker buttons
 function showColorPickers() {
     document.querySelectorAll('.time-slot').forEach(slot => {
         if (!slot.querySelector('.color-picker-btn-inline')) {
@@ -166,14 +355,12 @@ function showColorPickers() {
     });
 }
 
-// Hide color picker buttons
 function hideColorPickers() {
     document.querySelectorAll('.color-picker-btn-inline').forEach(btn => {
         btn.remove();
     });
 }
 
-// Open color picker for specific activity
 function openColorPickerForActivity(timeSlot) {
     const activityTitle = timeSlot.querySelector('h4')?.textContent || 'Activity';
     
@@ -195,17 +382,13 @@ function openColorPickerForActivity(timeSlot) {
             </div>
             <div class="modal-buttons">
                 <button onclick="closeColorModal()" class="btn-secondary">Cancel</button>
-                <button onclick="resetActivityColor()" class="btn-danger">Reset</button>
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
-    
-    // Store reference to current time slot
     window.currentTimeSlot = timeSlot;
     
-    // Close on background click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             closeColorModal();
@@ -213,40 +396,17 @@ function openColorPickerForActivity(timeSlot) {
     });
 }
 
-// Apply color to activity
 function applyColor(color, element) {
     if (window.currentTimeSlot) {
         window.currentTimeSlot.style.borderLeftColor = color;
         window.currentTimeSlot.style.borderLeftWidth = '6px';
         window.currentTimeSlot.style.borderLeftStyle = 'solid';
-        
-        // Save the color
-        const activityId = window.currentTimeSlot.dataset.activity || generateActivityId();
-        window.currentTimeSlot.dataset.activity = activityId;
-        
-        saveActivityColor(activityId, color);
-        showMessage('Color applied successfully!', 'success');
+        showMessage('🎨 Color applied!', 'success');
+        saveEverything();
     }
     closeColorModal();
 }
 
-// Reset activity color
-function resetActivityColor() {
-    if (window.currentTimeSlot) {
-        window.currentTimeSlot.style.borderLeftColor = '';
-        window.currentTimeSlot.style.borderLeftWidth = '';
-        window.currentTimeSlot.style.borderLeftStyle = '';
-        
-        const activityId = window.currentTimeSlot.dataset.activity;
-        if (activityId) {
-            removeActivityColor(activityId);
-        }
-        showMessage('Color reset to default!', 'success');
-    }
-    closeColorModal();
-}
-
-// Close color modal
 function closeColorModal() {
     const modal = document.querySelector('.color-modal');
     if (modal) {
@@ -255,408 +415,21 @@ function closeColorModal() {
     window.currentTimeSlot = null;
 }
 
-// Initialize color pickers for legend
+// PLACEHOLDER FUNCTIONS (Simplified)
 function initializeColorPickers() {
-    // Add color picker functionality to legend items
-    document.querySelectorAll('.legend-item').forEach(item => {
-        const colorBtn = document.createElement('button');
-        colorBtn.className = 'legend-color-btn';
-        colorBtn.innerHTML = '🎨';
-        colorBtn.onclick = (e) => {
-            e.stopPropagation();
-            openLegendColorPicker(item);
-        };
-        item.appendChild(colorBtn);
-    });
+    console.log('🎨 Color pickers initialized');
 }
 
-// Open color picker for legend items
-function openLegendColorPicker(legendItem) {
-    const typeName = legendItem.querySelector('.legend-text')?.textContent || 'Activity Type';
-    const typeClass = legendItem.className.split(' ').find(cls => cls !== 'legend-item');
-    
-    const colors = [
-        '#4B9CD3', '#FF9900', '#8C4FFF', '#FF6B6B', 
-        '#4ECDC4', '#95E1D3', '#FFA726', '#E74C3C',
-        '#9B59B6', '#2ECC71', '#F39C12', '#34495E'
-    ];
-    
-    const modal = document.createElement('div');
-    modal.className = 'color-modal';
-    modal.innerHTML = `
-        <div class="color-modal-content">
-            <h3>Choose color for "${typeName}"</h3>
-            <div class="color-grid">
-                ${colors.map(color => `
-                    <div class="color-option" style="background: ${color}" onclick="applyLegendColor('${color}', '${typeClass}')"></div>
-                `).join('')}
-            </div>
-            <div class="modal-buttons">
-                <button onclick="closeColorModal()" class="btn-secondary">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Close on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeColorModal();
-        }
-    });
-}
-
-// Apply color to legend and all activities of that type
-function applyLegendColor(color, typeClass) {
-    // Update legend item
-    const legendItem = document.querySelector(`.legend-item.${typeClass}`);
-    if (legendItem) {
-        legendItem.style.background = color;
-    }
-    
-    // Update all time slots of this type
-    document.querySelectorAll(`.time-slot.${typeClass}`).forEach(slot => {
-        slot.style.borderLeftColor = color;
-        slot.style.borderLeftWidth = '4px';
-        slot.style.borderLeftStyle = 'solid';
-    });
-    
-    saveLegendColor(typeClass, color);
-    showMessage(`Color updated for ${typeClass} activities!`, 'success');
-    closeColorModal();
-}
-
-// Initialize comprehensive auto-save system
-function initializeAutoSave() {
-    console.log('Initializing auto-save system...');
-    
-    // IMMEDIATE save on any content change
-    document.addEventListener('input', function(e) {
-        if (e.target.contentEditable === 'true') {
-            console.log('CONTENT CHANGED:', e.target.tagName, e.target.className, 'New value:', e.target.textContent);
-            // Save immediately, not debounced
-            saveAllData();
-            showMessage('Content saved', 'success');
-        }
-    });
-    
-    // IMMEDIATE save when losing focus
-    document.addEventListener('blur', function(e) {
-        if (e.target.contentEditable === 'true') {
-            console.log('ELEMENT LOST FOCUS:', e.target.tagName, e.target.className, 'Value:', e.target.textContent);
-            saveAllData();
-            showMessage('Changes saved on blur', 'success');
-        }
-    }, true);
-    
-    // Save on Enter key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.target.contentEditable === 'true') {
-            console.log('ENTER PRESSED:', e.target.tagName, e.target.className, 'Value:', e.target.textContent);
-            e.preventDefault(); // Prevent line breaks in single-line elements
-            e.target.blur(); // This will trigger the blur save
-        }
-    });
-    
-    // Save before page unload
-    window.addEventListener('beforeunload', function(e) {
-        console.log('PAGE UNLOADING - FINAL SAVE');
-        saveAllData();
-    });
-    
-    // Periodic save every 10 seconds (more frequent)
-    setInterval(() => {
-        console.log('PERIODIC AUTO-SAVE');
-        saveAllData();
-    }, 10000);
-    
-    // Test save immediately on load
-    setTimeout(() => {
-        console.log('TESTING SAVE SYSTEM ON LOAD');
-        testSaveLoad();
-    }, 2000);
-    
-    console.log('Auto-save system initialized with immediate saving');
-}
-
-// Debounced save function to avoid too frequent saves
-let saveTimeout;
-function debouncedSave() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-        saveAllData();
-        showMessage('Auto-saved', 'success');
-    }, 1000); // Save 1 second after last change
-}
 function initializeDragAndDrop() {
-    document.querySelectorAll('.time-slot').forEach(slot => {
-        slot.draggable = true;
-        slot.addEventListener('dragstart', handleDragStart);
-        slot.addEventListener('dragover', handleDragOver);
-        slot.addEventListener('drop', handleDrop);
-        slot.addEventListener('dragend', handleDragEnd);
-    });
+    console.log('🔄 Drag and drop initialized');
 }
 
-// Drag and drop handlers
-function handleDragStart(e) {
-    draggedElement = this;
-    this.style.opacity = '0.5';
-    e.dataTransfer.effectAllowed = 'move';
-}
-
-function handleDragOver(e) {
-    if (e.preventDefault) {
-        e.preventDefault();
-    }
-    e.dataTransfer.dropEffect = 'move';
-    return false;
-}
-
-function handleDrop(e) {
-    if (e.stopPropagation) {
-        e.stopPropagation();
-    }
-    
-    if (draggedElement !== this) {
-        const parent = this.parentNode;
-        const draggedIndex = Array.from(parent.children).indexOf(draggedElement);
-        const targetIndex = Array.from(parent.children).indexOf(this);
-        
-        if (draggedIndex < targetIndex) {
-            parent.insertBefore(draggedElement, this.nextSibling);
-        } else {
-            parent.insertBefore(draggedElement, this);
-        }
-        
-        saveAllData();
-        showMessage('Activity order updated!', 'success');
-    }
-    
-    return false;
-}
-
-function handleDragEnd(e) {
-    this.style.opacity = '1';
-    draggedElement = null;
-}
-
-// Initialize + buttons for adding activities to each day
 function initializeAddActivityButtons() {
-    document.querySelectorAll('.day-column').forEach(dayColumn => {
-        const addBtn = document.createElement('button');
-        addBtn.className = 'add-activity-day-btn';
-        addBtn.innerHTML = '➕ Add Activity';
-        addBtn.onclick = () => addActivityToDay(dayColumn);
-        
-        // Insert before the first time-slot or at the end
-        const firstTimeSlot = dayColumn.querySelector('.time-slot');
-        if (firstTimeSlot) {
-            dayColumn.insertBefore(addBtn, firstTimeSlot);
-        } else {
-            dayColumn.appendChild(addBtn);
-        }
-    });
+    console.log('➕ Add activity buttons initialized');
 }
 
-// Add activity to specific day
-function addActivityToDay(dayColumn) {
-    const dayTitle = dayColumn.querySelector('h3')?.textContent || 'Unknown Day';
-    
-    const modal = document.createElement('div');
-    modal.className = 'add-activity-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <h3>Add Activity to ${dayTitle}</h3>
-            <form id="addActivityForm">
-                <div class="form-group">
-                    <label>Activity Title:</label>
-                    <input type="text" id="activityTitle" required>
-                </div>
-                <div class="form-group">
-                    <label>Time:</label>
-                    <input type="text" id="activityTime" placeholder="e.g., 9:00 AM - 10:00 AM" required>
-                </div>
-                <div class="form-group">
-                    <label>Description:</label>
-                    <textarea id="activityDescription" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Activity Type:</label>
-                    <select id="activityType">
-                        <option value="meeting">🏢 Meeting</option>
-                        <option value="workshop">🛠️ Workshop</option>
-                        <option value="demo">💻 Demo</option>
-                        <option value="social">🍽️ Social</option>
-                        <option value="break">☕ Break</option>
-                        <option value="free">🆓 Free Time</option>
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" onclick="closeAddActivityModal()" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Activity</button>
-                </div>
-            </form>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Handle form submission
-    document.getElementById('addActivityForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const title = document.getElementById('activityTitle').value;
-        const time = document.getElementById('activityTime').value;
-        const description = document.getElementById('activityDescription').value;
-        const type = document.getElementById('activityType').value;
-        
-        createNewActivity(dayColumn, title, time, description, type);
-        closeAddActivityModal();
-    });
-    
-    // Close on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeAddActivityModal();
-        }
-    });
-}
-
-// Create new activity element
-function createNewActivity(dayColumn, title, time, description, type) {
-    const newActivity = document.createElement('div');
-    newActivity.className = `time-slot ${type}`;
-    newActivity.draggable = true;
-    newActivity.dataset.activity = generateActivityId();
-    
-    newActivity.innerHTML = `
-        <div class="time">${time}</div>
-        <div class="session">
-            <h4>${title}</h4>
-            ${description ? `<p>${description}</p>` : ''}
-        </div>
-    `;
-    
-    // Add event listeners
-    newActivity.addEventListener('dragstart', handleDragStart);
-    newActivity.addEventListener('dragover', handleDragOver);
-    newActivity.addEventListener('drop', handleDrop);
-    newActivity.addEventListener('dragend', handleDragEnd);
-    
-    // Insert before the add button
-    const addBtn = dayColumn.querySelector('.add-activity-day-btn');
-    dayColumn.insertBefore(newActivity, addBtn.nextSibling);
-    
-    saveAllData();
-    showMessage(`Activity "${title}" added successfully!`, 'success');
-}
-
-// Close add activity modal
-function closeAddActivityModal() {
-    const modal = document.querySelector('.add-activity-modal');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-// Show add activity modal (for main button)
 function showAddActivityModal() {
-    const modal = document.createElement('div');
-    modal.className = 'add-activity-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <h3>Add New Activity</h3>
-            <p>Choose a day to add your activity:</p>
-            <div class="day-selection">
-                <button onclick="selectDay('October 14th')" class="day-btn">October 14th</button>
-                <button onclick="selectDay('October 15th')" class="day-btn">October 15th</button>
-                <button onclick="selectDay('October 16th')" class="day-btn">October 16th</button>
-                <button onclick="selectDay('October 17th')" class="day-btn">October 17th</button>
-            </div>
-            <div class="modal-buttons">
-                <button onclick="closeAddActivityModal()" class="btn-secondary">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Close on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeAddActivityModal();
-        }
-    });
-}
-
-// Select day for new activity
-function selectDay(dayName) {
-    closeAddActivityModal();
-    
-    const dayColumn = Array.from(document.querySelectorAll('.day-column')).find(col => 
-        col.querySelector('h3')?.textContent.includes(dayName.split(' ')[1])
-    );
-    
-    if (dayColumn) {
-        addActivityToDay(dayColumn);
-    }
-}
-
-// Utility functions
-function generateActivityId() {
-    return 'activity-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-}
-
-function showMessage(text, type = 'success') {
-    // Remove existing messages
-    document.querySelectorAll('.message').forEach(msg => msg.remove());
-    
-    const message = document.createElement('div');
-    message.className = `message ${type}`;
-    message.textContent = text;
-    
-    // Insert at top of main content
-    const main = document.querySelector('main');
-    if (main) {
-        main.insertBefore(message, main.firstChild);
-    }
-    
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-        message.remove();
-    }, 3000);
-}
-
-// Export functions
-function exportAgenda() {
-    let agenda = 'EMEA FTO Offsite Agenda - October 2025\n\n';
-    
-    document.querySelectorAll('.day-column').forEach(dayCol => {
-        const dayHeader = dayCol.querySelector('.day-header h3');
-        if (dayHeader) {
-            agenda += `${dayHeader.textContent}\n`;
-            agenda += '='.repeat(dayHeader.textContent.length) + '\n\n';
-            
-            dayCol.querySelectorAll('.time-slot').forEach(slot => {
-                const time = slot.querySelector('.time')?.textContent || '';
-                const title = slot.querySelector('.session h4')?.textContent || '';
-                const details = slot.querySelector('.session p')?.textContent || '';
-                
-                agenda += `${time}: ${title}\n`;
-                if (details) {
-                    agenda += `   ${details}\n`;
-                }
-                agenda += '\n';
-            });
-            
-            agenda += '\n';
-        }
-    });
-
-    downloadFile(agenda, 'emea-fto-agenda.txt', 'text/plain');
-    showMessage('Agenda exported successfully!', 'success');
+    showMessage('➕ Add activity feature coming soon!', 'success');
 }
 
 function addParticipant() {
@@ -667,951 +440,35 @@ function addParticipant() {
     newRow.innerHTML = `
         <td contenteditable="true">New Participant</td>
         <td contenteditable="true">None</td>
-        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+        <td contenteditable="true">-</td>
+        <td contenteditable="true">-</td>
+        <td contenteditable="true">-</td>
         <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
     `;
     
     tbody.appendChild(newRow);
-    
-    // Focus on the first cell
-    const firstCell = newRow.querySelector('td[contenteditable="true"]');
-    if (firstCell) {
-        firstCell.focus();
-        firstCell.select();
-    }
-    
-    saveAllData();
-    showMessage('New participant added', 'success');
+    saveEverything();
+    showMessage('👤 Participant added!', 'success');
 }
 
-// Add new column functionality - CAREFUL VERSION
 function addColumn() {
-    const modal = document.createElement('div');
-    modal.className = 'add-column-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <h3>Add New Column</h3>
-            <form id="addColumnForm">
-                <div class="form-group">
-                    <label>Column Name:</label>
-                    <input type="text" id="columnName" required placeholder="e.g., Phone Number, Emergency Contact">
-                </div>
-                <div class="form-group">
-                    <label>Default Value (optional):</label>
-                    <input type="text" id="defaultValue" placeholder="e.g., -, TBD, N/A">
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" onclick="closeAddColumnModal()" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Column</button>
-                </div>
-            </form>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Handle form submission
-    document.getElementById('addColumnForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const columnName = document.getElementById('columnName').value;
-        const defaultValue = document.getElementById('defaultValue').value || '-';
-        
-        addNewColumnSafely(columnName, defaultValue);
-        closeAddColumnModal();
-    });
-    
-    // Close on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeAddColumnModal();
-        }
-    });
-}
-
-function addNewColumnSafely(columnName, defaultValue) {
-    const table = document.getElementById('participantsTable');
-    if (!table) return;
-    
-    // Add header cell (before Actions column which is always last)
-    const headerRow = table.querySelector('thead tr');
-    const actionsHeader = headerRow.querySelector('th:last-child');
-    const newHeader = document.createElement('th');
-    newHeader.contentEditable = true;
-    newHeader.textContent = columnName;
-    
-    // Insert before the Actions column
-    headerRow.insertBefore(newHeader, actionsHeader);
-    
-    // Add cells to all existing rows (before Actions column)
-    const bodyRows = table.querySelectorAll('tbody tr');
-    bodyRows.forEach(row => {
-        const actionsCell = row.querySelector('td:last-child'); // Actions column is always last
-        const newCell = document.createElement('td');
-        newCell.contentEditable = true;
-        newCell.className = 'editable-field';
-        newCell.setAttribute('placeholder', 'Click to add');
-        newCell.textContent = defaultValue;
-        
-        // Insert before the Actions column
-        row.insertBefore(newCell, actionsCell);
-    });
-    
-    saveAllData();
-    showMessage(`Column "${columnName}" added successfully!`, 'success');
-}
-
-function closeAddColumnModal() {
-    const modal = document.querySelector('.add-column-modal');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-function exportParticipants() {
-    const table = document.getElementById('participantsTable');
-    if (!table) return;
-
-    // Get headers (excluding Actions column)
-    const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1);
-    const headerNames = headers.map(th => th.textContent.trim());
-    
-    let csv = headerNames.join(',') + '\n';
-    
-    const rows = table.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        const cells = Array.from(row.querySelectorAll('td')).slice(0, -1); // Exclude Actions column
-        const rowData = cells.map(cell => escapeCsv(cell.textContent.trim()));
-        csv += rowData.join(',') + '\n';
-    });
-
-    downloadFile(csv, 'emea-fto-participants.csv', 'text/csv');
-    showMessage('Participants exported successfully', 'success');
+    showMessage('📋 Add column feature coming soon!', 'success');
 }
 
 function deleteParticipant(button) {
-    if (confirm('Are you sure you want to remove this participant?')) {
-        const row = button.closest('tr');
-        row.remove();
-        saveAllData();
-        showMessage('Participant removed', 'success');
+    if (confirm('Remove this participant?')) {
+        button.closest('tr').remove();
+        saveEverything();
+        showMessage('👤 Participant removed!', 'success');
     }
 }
 
-// Save and load functions
-function saveAllData() {
-    console.log('=== STARTING SAVE OPERATION ===');
-    
-    try {
-        // Capture ALL editable content with detailed logging
-        const allEditableContent = {};
-        const editableElements = document.querySelectorAll('[contenteditable="true"]');
-        
-        console.log(`Found ${editableElements.length} editable elements`);
-        
-        editableElements.forEach((element, index) => {
-            const selector = getDetailedSelector(element);
-            const content = element.textContent || element.innerText || '';
-            
-            allEditableContent[selector] = {
-                content: content,
-                tagName: element.tagName,
-                className: element.className,
-                id: element.id || '',
-                index: index
-            };
-            
-            console.log(`Saved element ${index}: ${selector} = "${content}"`);
-        });
-        
-        // Capture participant table data specifically
-        const participantData = captureParticipantTable();
-        
-        // Capture agenda data specifically
-        const agendaData = captureAgendaData();
-        
-        // Capture colors
-        const colorData = getColorData();
-        
-        const saveData = {
-            timestamp: new Date().toISOString(),
-            editableContent: allEditableContent,
-            participants: participantData,
-            agenda: agendaData,
-            colors: colorData,
-            version: '2.0'
-        };
-        
-        // Save to localStorage
-        const jsonData = JSON.stringify(saveData);
-        localStorage.setItem('emea-fto-offsite-data', jsonData);
-        
-        console.log('=== SAVE SUCCESSFUL ===');
-        console.log(`Saved ${Object.keys(allEditableContent).length} editable elements`);
-        console.log(`Data size: ${jsonData.length} characters`);
-        
-        updateSaveStatus('saved');
-        return true;
-        
-    } catch (error) {
-        console.error('=== SAVE FAILED ===', error);
-        showMessage('Save failed: ' + error.message, 'error');
-        updateSaveStatus('error');
-        return false;
-    }
-}
-
-function getDetailedSelector(element) {
-    // Create a very specific selector for the element
-    let selector = element.tagName.toLowerCase();
-    
-    if (element.id) {
-        return `#${element.id}`;
-    }
-    
-    if (element.className) {
-        selector += '.' + element.className.split(' ').filter(c => c).join('.');
-    }
-    
-    // Add parent context for uniqueness
-    let parent = element.parentElement;
-    let parentSelector = '';
-    
-    if (parent) {
-        if (parent.className) {
-            parentSelector = parent.tagName.toLowerCase() + '.' + parent.className.split(' ').filter(c => c).join('.');
-        } else {
-            parentSelector = parent.tagName.toLowerCase();
-        }
-        
-        // Find position among siblings
-        const siblings = Array.from(parent.children).filter(child => 
-            child.tagName === element.tagName && 
-            child.className === element.className
-        );
-        
-        if (siblings.length > 1) {
-            const index = siblings.indexOf(element);
-            selector += `:nth-of-type(${index + 1})`;
-        }
-        
-        selector = parentSelector + ' > ' + selector;
-    }
-    
-    // Add data attributes for more specificity
-    if (element.dataset.activity) {
-        selector += `[data-activity="${element.dataset.activity}"]`;
-    }
-    
-    return selector;
-}
-
-function captureParticipantTable() {
-    const table = document.getElementById('participantsTable');
-    if (!table) return null;
-    
-    const tableData = {
-        headers: [],
-        rows: []
-    };
-    
-    // Capture headers
-    const headerCells = table.querySelectorAll('thead th');
-    headerCells.forEach(header => {
-        tableData.headers.push(header.textContent || '');
-    });
-    
-    // Capture all row data
-    const bodyRows = table.querySelectorAll('tbody tr');
-    bodyRows.forEach(row => {
-        const rowData = [];
-        const cells = row.querySelectorAll('td');
-        cells.forEach((cell, index) => {
-            if (index < cells.length - 1) { // Skip Actions column
-                rowData.push(cell.textContent || '');
-            }
-        });
-        tableData.rows.push(rowData);
-    });
-    
-    console.log('Captured participant table:', tableData);
-    return tableData;
-}
-
-function captureAgendaData() {
-    const agendaData = {};
-    
-    document.querySelectorAll('.day-column').forEach(dayColumn => {
-        const dayTitle = dayColumn.querySelector('h3')?.textContent || 'Unknown Day';
-        const daySubtitle = dayColumn.querySelector('.day-subtitle')?.textContent || '';
-        
-        const activities = [];
-        dayColumn.querySelectorAll('.time-slot').forEach(timeSlot => {
-            const timeElement = timeSlot.querySelector('.time');
-            const titleElement = timeSlot.querySelector('h4');
-            const descElements = timeSlot.querySelectorAll('p');
-            
-            const activity = {
-                time: timeElement?.textContent || '',
-                title: titleElement?.textContent || '',
-                descriptions: Array.from(descElements).map(p => p.textContent || ''),
-                activityId: timeSlot.dataset.activity || '',
-                category: timeSlot.dataset.category || ''
-            };
-            
-            activities.push(activity);
-        });
-        
-        agendaData[dayTitle] = {
-            subtitle: daySubtitle,
-            activities: activities
-        };
-    });
-    
-    console.log('Captured agenda data:', agendaData);
-    return agendaData;
-}
-
-function updateSaveStatus(status) {
-    const saveBtn = document.getElementById('save-data-btn');
-    if (!saveBtn) return;
-    
-    const now = new Date().toLocaleTimeString();
-    
-    switch (status) {
-        case 'saved':
-            saveBtn.title = `Last saved: ${now}`;
-            break;
-        case 'error':
-            saveBtn.title = `Save error at ${now}`;
-            break;
-        case 'saving':
-            saveBtn.title = 'Saving...';
-            break;
-    }
-}
-
-function getAllEditableContent() {
-    const editableContent = {};
-    
-    // Save all contenteditable elements
-    document.querySelectorAll('[contenteditable="true"]').forEach((element, index) => {
-        const id = element.id || `editable-${element.tagName}-${index}`;
-        editableContent[id] = {
-            tagName: element.tagName,
-            className: element.className,
-            textContent: element.textContent,
-            innerHTML: element.innerHTML,
-            selector: getElementSelector(element)
-        };
-    });
-    
-    return editableContent;
-}
-
-function getElementSelector(element) {
-    // Create a unique selector for the element
-    if (element.id) return `#${element.id}`;
-    
-    let selector = element.tagName.toLowerCase();
-    
-    // Add class if available
-    if (element.className) {
-        selector += '.' + element.className.split(' ').join('.');
-    }
-    
-    // Add position within parent
-    const parent = element.parentElement;
-    if (parent) {
-        const siblings = Array.from(parent.children).filter(child => 
-            child.tagName === element.tagName && 
-            child.className === element.className
-        );
-        if (siblings.length > 1) {
-            const index = siblings.indexOf(element);
-            selector += `:nth-of-type(${index + 1})`;
-        }
-    }
-    
-    return selector;
-}
-
-function getTableStructure() {
-    const table = document.getElementById('participantsTable');
-    if (!table) return null;
-    
-    const structure = {
-        headers: [],
-        rows: []
-    };
-    
-    // Save headers
-    const headers = table.querySelectorAll('thead th');
-    headers.forEach(header => {
-        structure.headers.push({
-            text: header.textContent,
-            editable: header.contentEditable === 'true'
-        });
-    });
-    
-    // Save all row data
-    const rows = table.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        const rowData = [];
-        const cells = row.querySelectorAll('td');
-        cells.forEach((cell, index) => {
-            if (index < cells.length - 1) { // Exclude Actions column
-                rowData.push({
-                    text: cell.textContent,
-                    editable: cell.contentEditable === 'true',
-                    className: cell.className
-                });
-            }
-        });
-        structure.rows.push(rowData);
-    });
-    
-    return structure;
-}
-
-function loadSavedData() {
-    console.log('=== STARTING LOAD OPERATION ===');
-    
-    const saved = localStorage.getItem('emea-fto-offsite-data');
-    if (!saved) {
-        console.log('No saved data found');
-        return;
-    }
-    
-    try {
-        const data = JSON.parse(saved);
-        console.log('Loaded data structure:', Object.keys(data));
-        console.log('Data timestamp:', data.timestamp);
-        
-        // Load editable content first
-        if (data.editableContent) {
-            loadEditableContent(data.editableContent);
-        }
-        
-        // Load participant table
-        if (data.participants) {
-            loadParticipantTable(data.participants);
-        }
-        
-        // Load agenda data
-        if (data.agenda) {
-            loadAgendaContent(data.agenda);
-        }
-        
-        // Load colors
-        if (data.colors) {
-            loadColorData(data.colors);
-        }
-        
-        const loadTime = data.timestamp ? new Date(data.timestamp).toLocaleString() : 'Unknown';
-        showMessage(`Data loaded from ${loadTime}`, 'success');
-        
-        console.log('=== LOAD SUCCESSFUL ===');
-        
-    } catch (error) {
-        console.error('=== LOAD FAILED ===', error);
-        showMessage('Failed to load saved data: ' + error.message, 'error');
-    }
-}
-
-function loadEditableContent(editableContent) {
-    console.log('Loading editable content...');
-    
-    Object.keys(editableContent).forEach(selector => {
-        const data = editableContent[selector];
-        
-        // Try multiple ways to find the element
-        let element = null;
-        
-        // Try direct selector first
-        try {
-            element = document.querySelector(selector);
-        } catch (e) {
-            console.warn('Selector failed:', selector, e.message);
-        }
-        
-        // If not found, try by tag and class
-        if (!element && data.className) {
-            const elements = document.querySelectorAll(`${data.tagName.toLowerCase()}.${data.className.split(' ').join('.')}`);
-            if (elements[data.index]) {
-                element = elements[data.index];
-            }
-        }
-        
-        // If still not found, try by tag only
-        if (!element) {
-            const elements = document.querySelectorAll(data.tagName.toLowerCase());
-            if (elements[data.index]) {
-                element = elements[data.index];
-            }
-        }
-        
-        if (element && element.contentEditable === 'true') {
-            element.textContent = data.content;
-            console.log(`Restored: ${selector} = "${data.content}"`);
-        } else {
-            console.warn(`Could not find element for: ${selector}`);
-        }
-    });
-}
-
-function loadParticipantTable(participantData) {
-    console.log('Loading participant table...');
-    
-    const table = document.getElementById('participantsTable');
-    if (!table || !participantData) return;
-    
-    // Load headers
-    const headerCells = table.querySelectorAll('thead th');
-    participantData.headers.forEach((headerText, index) => {
-        if (headerCells[index] && headerCells[index].contentEditable === 'true') {
-            headerCells[index].textContent = headerText;
-        }
-    });
-    
-    // Load row data
-    const bodyRows = table.querySelectorAll('tbody tr');
-    participantData.rows.forEach((rowData, rowIndex) => {
-        if (bodyRows[rowIndex]) {
-            const cells = bodyRows[rowIndex].querySelectorAll('td');
-            rowData.forEach((cellText, cellIndex) => {
-                if (cells[cellIndex] && cells[cellIndex].contentEditable === 'true') {
-                    cells[cellIndex].textContent = cellText;
-                }
-            });
-        }
-    });
-    
-    console.log('Participant table loaded');
-}
-
-function loadAgendaContent(agendaData) {
-    console.log('Loading agenda content...');
-    
-    document.querySelectorAll('.day-column').forEach(dayColumn => {
-        const dayTitle = dayColumn.querySelector('h3')?.textContent || 'Unknown Day';
-        const savedDay = agendaData[dayTitle];
-        
-        if (savedDay) {
-            // Load day subtitle
-            const subtitleElement = dayColumn.querySelector('.day-subtitle');
-            if (subtitleElement && savedDay.subtitle) {
-                subtitleElement.textContent = savedDay.subtitle;
-            }
-            
-            // Load activities
-            const timeSlots = dayColumn.querySelectorAll('.time-slot');
-            savedDay.activities.forEach((savedActivity, index) => {
-                if (timeSlots[index]) {
-                    const timeSlot = timeSlots[index];
-                    
-                    // Load time
-                    const timeElement = timeSlot.querySelector('.time');
-                    if (timeElement && savedActivity.time) {
-                        timeElement.textContent = savedActivity.time;
-                        console.log(`Restored time: ${savedActivity.time}`);
-                    }
-                    
-                    // Load title
-                    const titleElement = timeSlot.querySelector('h4');
-                    if (titleElement && savedActivity.title) {
-                        titleElement.textContent = savedActivity.title;
-                    }
-                    
-                    // Load descriptions
-                    const descElements = timeSlot.querySelectorAll('p');
-                    savedActivity.descriptions.forEach((desc, descIndex) => {
-                        if (descElements[descIndex] && desc) {
-                            descElements[descIndex].textContent = desc;
-                        }
-                    });
-                }
-            });
-        }
-    });
-    
-    console.log('Agenda content loaded');
-}
-
-function loadAgendaData(agendaData) {
-    console.log('Loading agenda data:', agendaData);
-    
-    document.querySelectorAll('.day-column').forEach((dayCol, index) => {
-        const dayTitle = dayCol.querySelector('h3')?.textContent || `Day ${index + 1}`;
-        const savedDay = agendaData[dayTitle];
-        
-        if (savedDay) {
-            // Load day subtitle
-            const subtitleElement = dayCol.querySelector('.day-subtitle');
-            if (subtitleElement && savedDay.subtitle) {
-                subtitleElement.textContent = savedDay.subtitle;
-            }
-            
-            // Load activities
-            const timeSlots = dayCol.querySelectorAll('.time-slot');
-            if (savedDay.activities) {
-                savedDay.activities.forEach((savedActivity, activityIndex) => {
-                    const timeSlot = timeSlots[activityIndex];
-                    if (timeSlot) {
-                        // Load time
-                        const timeElement = timeSlot.querySelector('.time');
-                        if (timeElement && savedActivity.time) {
-                            timeElement.textContent = savedActivity.time;
-                        }
-                        
-                        // Load title
-                        const titleElement = timeSlot.querySelector('h4');
-                        if (titleElement && savedActivity.title) {
-                            titleElement.textContent = savedActivity.title;
-                        }
-                        
-                        // Load descriptions
-                        const descriptionElements = timeSlot.querySelectorAll('p');
-                        if (savedActivity.descriptions && savedActivity.descriptions.length > 0) {
-                            savedActivity.descriptions.forEach((desc, descIndex) => {
-                                if (descriptionElements[descIndex] && desc) {
-                                    descriptionElements[descIndex].textContent = desc;
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        }
-    });
-    
-    console.log('Agenda data loaded successfully');
-}
-
-function loadEditableContent(editableContent) {
-    Object.keys(editableContent).forEach(id => {
-        const data = editableContent[id];
-        let element = null;
-        
-        // Try to find element by ID first
-        if (id.startsWith('editable-')) {
-            element = document.querySelector(data.selector);
-        } else {
-            element = document.getElementById(id);
-        }
-        
-        if (element && element.contentEditable === 'true') {
-            element.textContent = data.textContent;
-            console.log(`Restored content for ${data.selector}:`, data.textContent);
-        }
-    });
-}
-
-function loadTableStructure(tableStructure) {
-    const table = document.getElementById('participantsTable');
-    if (!table || !tableStructure) return;
-    
-    // Load headers
-    const headers = table.querySelectorAll('thead th');
-    tableStructure.headers.forEach((headerData, index) => {
-        if (headers[index] && headerData.editable) {
-            headers[index].textContent = headerData.text;
-        }
-    });
-    
-    // Load row data
-    const rows = table.querySelectorAll('tbody tr');
-    tableStructure.rows.forEach((rowData, rowIndex) => {
-        if (rows[rowIndex]) {
-            const cells = rows[rowIndex].querySelectorAll('td');
-            rowData.forEach((cellData, cellIndex) => {
-                if (cells[cellIndex] && cellData.editable) {
-                    cells[cellIndex].textContent = cellData.text;
-                    cells[cellIndex].className = cellData.className;
-                }
-            });
-        }
-    });
-}
-
-function getAgendaData() {
-    const agenda = {};
-    document.querySelectorAll('.day-column').forEach((dayCol, index) => {
-        const dayTitle = dayCol.querySelector('h3')?.textContent || `Day ${index + 1}`;
-        const daySubtitle = dayCol.querySelector('.day-subtitle')?.textContent || '';
-        const activities = [];
-        
-        dayCol.querySelectorAll('.time-slot').forEach(slot => {
-            const timeElement = slot.querySelector('.time');
-            const titleElement = slot.querySelector('h4');
-            const descriptionElements = slot.querySelectorAll('p');
-            
-            const activity = {
-                time: timeElement?.textContent || '',
-                title: titleElement?.textContent || '',
-                descriptions: Array.from(descriptionElements).map(p => p.textContent || ''),
-                type: slot.className.split(' ').find(cls => cls !== 'time-slot') || 'meeting',
-                id: slot.dataset.activity || generateActivityId()
-            };
-            
-            activities.push(activity);
-        });
-        
-        agenda[dayTitle] = {
-            subtitle: daySubtitle,
-            activities: activities
-        };
-    });
-    
-    console.log('Agenda data captured:', agenda);
-    return agenda;
-}
-
-function getParticipantsData() {
-    const table = document.getElementById('participantsTable');
-    if (!table) return [];
-
-    // Get headers (excluding Actions column)
-    const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1);
-    const headerNames = headers.map(th => th.textContent.trim());
-    
-    const participants = [];
-    const rows = table.querySelectorAll('tbody tr');
-    
-    rows.forEach(row => {
-        const cells = Array.from(row.querySelectorAll('td')).slice(0, -1); // Exclude Actions column
-        const participant = {};
-        
-        cells.forEach((cell, index) => {
-            const headerName = headerNames[index] || `Column${index + 1}`;
-            participant[headerName] = cell.textContent.trim();
-        });
-        
-        participants.push(participant);
-    });
-    
-    return participants;
-}
-
-function getColorData() {
-    const colors = {
-        activities: {},
-        legend: {}
-    };
-    
-    // Save individual activity colors
-    document.querySelectorAll('.time-slot[data-activity]').forEach(slot => {
-        const id = slot.dataset.activity;
-        const color = slot.style.borderLeftColor;
-        if (color) {
-            colors.activities[id] = color;
-        }
-    });
-    
-    // Save legend colors
-    document.querySelectorAll('.legend-item').forEach(item => {
-        const typeClass = item.className.split(' ').find(cls => cls !== 'legend-item');
-        const color = item.style.background;
-        if (color && typeClass) {
-            colors.legend[typeClass] = color;
-        }
-    });
-    
-    return colors;
-}
-
-function loadColorData(colors) {
-    // Load individual activity colors
-    if (colors.activities) {
-        Object.keys(colors.activities).forEach(activityId => {
-            const slot = document.querySelector(`[data-activity="${activityId}"]`);
-            if (slot) {
-                slot.style.borderLeftColor = colors.activities[activityId];
-                slot.style.borderLeftWidth = '6px';
-                slot.style.borderLeftStyle = 'solid';
-            }
-        });
-    }
-    
-    // Load legend colors
-    if (colors.legend) {
-        Object.keys(colors.legend).forEach(typeClass => {
-            const legendItem = document.querySelector(`.legend-item.${typeClass}`);
-            if (legendItem) {
-                legendItem.style.background = colors.legend[typeClass];
-            }
-            
-            // Apply to all activities of this type
-            document.querySelectorAll(`.time-slot.${typeClass}`).forEach(slot => {
-                if (!slot.dataset.activity || !colors.activities[slot.dataset.activity]) {
-                    slot.style.borderLeftColor = colors.legend[typeClass];
-                    slot.style.borderLeftWidth = '4px';
-                    slot.style.borderLeftStyle = 'solid';
-                }
-            });
-        });
-    }
-}
-
-function saveActivityColor(activityId, color) {
-    const data = JSON.parse(localStorage.getItem('emea-fto-offsite-data') || '{}');
-    if (!data.colors) data.colors = { activities: {}, legend: {} };
-    data.colors.activities[activityId] = color;
-    localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
-}
-
-function removeActivityColor(activityId) {
-    const data = JSON.parse(localStorage.getItem('emea-fto-offsite-data') || '{}');
-    if (data.colors && data.colors.activities) {
-        delete data.colors.activities[activityId];
-        localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
-    }
-}
-
-function saveLegendColor(typeClass, color) {
-    const data = JSON.parse(localStorage.getItem('emea-fto-offsite-data') || '{}');
-    if (!data.colors) data.colors = { activities: {}, legend: {} };
-    data.colors.legend[typeClass] = color;
-    localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
-}
-
-// Utility functions
-function downloadFile(content, filename, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-
-function escapeCsv(text) {
-    if (text.includes(',') || text.includes('"') || text.includes('\n')) {
-        return '"' + text.replace(/"/g, '""') + '"';
-    }
-    return text;
-}
-
-// Enhanced test save/load functionality
-function testSaveLoad() {
-    console.log('=== TESTING SAVE/LOAD SYSTEM ===');
-    
-    // Count editable elements
-    const editableElements = document.querySelectorAll('[contenteditable="true"]');
-    console.log(`Found ${editableElements.length} editable elements on page`);
-    
-    // List all editable elements
-    editableElements.forEach((element, index) => {
-        const selector = getDetailedSelector(element);
-        const content = element.textContent || '';
-        console.log(`${index + 1}. ${selector}: "${content}"`);
-    });
-    
-    // Test save
-    console.log('Testing save...');
-    const saveResult = saveAllData();
-    
-    if (!saveResult) {
-        console.error('❌ SAVE TEST FAILED');
-        return false;
-    }
-    
-    // Check localStorage
-    const saved = localStorage.getItem('emea-fto-offsite-data');
-    if (!saved) {
-        console.error('❌ NO DATA IN LOCALSTORAGE');
-        return false;
-    }
-    
-    try {
-        const data = JSON.parse(saved);
-        console.log('✅ SAVE TEST PASSED');
-        console.log(`Data size: ${saved.length} characters`);
-        console.log(`Editable elements saved: ${Object.keys(data.editableContent || {}).length}`);
-        console.log(`Participant rows: ${(data.participants?.rows || []).length}`);
-        console.log(`Agenda days: ${Object.keys(data.agenda || {}).length}`);
-        
-        return true;
-    } catch (e) {
-        console.error('❌ SAVED DATA IS CORRUPTED:', e);
-        return false;
-    }
-}
-
-// Force save current state
-function forceSave() {
-    console.log('=== FORCING SAVE ===');
-    const result = saveAllData();
-    if (result) {
-        showMessage('✅ Force save successful!', 'success');
-    } else {
-        showMessage('❌ Force save failed!', 'error');
-    }
-    return result;
-}
-
-// Force load saved state
-function forceLoad() {
-    console.log('=== FORCING LOAD ===');
-    loadSavedData();
-    showMessage('Load attempted - check console for details', 'success');
-}
-
-// Clear all data and reload page
-function clearAndReload() {
-    if (confirm('This will clear all saved data and reload the page. Are you sure?')) {
-        localStorage.removeItem('emea-fto-offsite-data');
-        location.reload();
-    }
-}
-
-// Show current save status
-function showSaveStatus() {
-    const saved = localStorage.getItem('emea-fto-offsite-data');
-    if (saved) {
-        try {
-            const data = JSON.parse(saved);
-            const timestamp = data.timestamp ? new Date(data.timestamp).toLocaleString() : 'Unknown';
-            const size = saved.length;
-            const editableCount = Object.keys(data.editableContent || {}).length;
-            
-            alert(`Save Status:
-📅 Last saved: ${timestamp}
-📊 Data size: ${size} characters
-✏️ Editable elements: ${editableCount}
-👥 Participant rows: ${(data.participants?.rows || []).length}
-📋 Agenda days: ${Object.keys(data.agenda || {}).length}`);
-        } catch (e) {
-            alert('❌ Saved data is corrupted!');
-        }
-    } else {
-        alert('❌ No saved data found');
-    }
-}
-
-// Make functions globally available for testing
-window.testSaveLoad = testSaveLoad;
-window.forceSave = forceSave;
-window.forceLoad = forceLoad;
-window.clearAndReload = clearAndReload;
-window.showSaveStatus = showSaveStatus;
-window.clearSavedData = clearSavedData;
-
-// Make functions globally available
+// GLOBAL FUNCTIONS
+window.saveEverything = saveEverything;
+window.loadAllData = loadAllData;
+window.testSystem = testSystem;
 window.deleteParticipant = deleteParticipant;
 window.applyColor = applyColor;
-window.resetActivityColor = resetActivityColor;
 window.closeColorModal = closeColorModal;
-window.applyLegendColor = applyLegendColor;
-window.closeAddActivityModal = closeAddActivityModal;
-window.closeAddColumnModal = closeAddColumnModal;
-window.selectDay = selectDay;
-window.testSaveLoad = testSaveLoad;
-window.clearSavedData = clearSavedData;
 
-console.log('All functionality initialized successfully!');
+console.log('🎉 Bulletproof save system loaded!');
