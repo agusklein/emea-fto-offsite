@@ -51,18 +51,29 @@ class OffsiteManager {
         document.getElementById('add-activity-type-btn')?.addEventListener('click', () => this.addActivityType());
         document.getElementById('customize-legend-btn')?.addEventListener('click', () => this.customizeLegend());
 
-        // Color picker buttons
+        // Color picker buttons and activity interactions
         document.addEventListener('click', (e) => {
+            // Handle activity type color picker buttons (in legend)
             if (e.target.classList.contains('color-picker-btn')) {
                 const activityType = e.target.dataset.type;
                 this.openColorPicker(activityType);
+                return;
             }
+            
+            // Handle individual activity color picker buttons
             if (e.target.classList.contains('activity-color-btn')) {
                 e.preventDefault();
                 e.stopPropagation(); // Prevent time-slot click
                 const activityId = e.target.dataset.activity;
                 console.log('Activity color button clicked:', activityId); // Debug log
                 this.openActivityColorPicker(activityId, e.target);
+                return;
+            }
+            
+            // Handle time-slot clicks for edit mode (only if not clicking on color button)
+            if (e.target.closest('.time-slot') && this.editMode && !e.target.classList.contains('activity-color-btn')) {
+                // Allow normal editing functionality
+                return;
             }
         });
 
@@ -76,9 +87,14 @@ class OffsiteManager {
             }
         });
 
-        // Auto-save when losing focus on editable elements
+        // Auto-save when losing focus on editable elements (but not agenda items in edit mode)
         document.addEventListener('blur', (e) => {
             if (e.target.contentEditable === 'true') {
+                // Skip if this is an agenda item being handled by edit mode
+                if (e.target.closest('.time-slot') && this.editMode) {
+                    return; // Let edit mode handle this
+                }
+                
                 this.saveData();
                 this.showMessage('Changes saved automatically', 'success');
             }
@@ -87,6 +103,11 @@ class OffsiteManager {
         // Handle Enter key in editable elements
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.target.contentEditable === 'true') {
+                // Skip if this is an agenda item being handled by edit mode
+                if (e.target.closest('.time-slot') && this.editMode) {
+                    return; // Let edit mode handle this
+                }
+                
                 // Allow Enter in paragraph elements, but blur for titles
                 if (e.target.tagName === 'H1' || e.target.tagName === 'H2' || 
                     e.target.tagName === 'H3' || e.target.tagName === 'H4' || 
@@ -251,20 +272,28 @@ class OffsiteManager {
             });
         });
         
-        // Add save handlers
-        document.querySelectorAll('.editable-field').forEach(field => {
-            field.addEventListener('blur', () => {
-                this.saveData();
-                this.showMessage('Changes saved', 'success');
-            });
+        // Add save handlers for agenda items
+        document.querySelectorAll('.time-slot .editable-field').forEach(field => {
+            // Remove existing listeners to avoid duplicates
+            field.removeEventListener('blur', this.agendaBlurHandler);
+            field.removeEventListener('keydown', this.agendaKeydownHandler);
             
-            field.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    field.blur();
-                }
-            });
+            // Add new listeners
+            field.addEventListener('blur', this.agendaBlurHandler.bind(this));
+            field.addEventListener('keydown', this.agendaKeydownHandler.bind(this));
         });
+    }
+
+    agendaBlurHandler(e) {
+        this.saveData();
+        this.showMessage('Agenda changes saved', 'success');
+    }
+
+    agendaKeydownHandler(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.target.blur();
+        }
     }
 
     disableAgendaEditing() {
@@ -278,6 +307,12 @@ class OffsiteManager {
                 element.contentEditable = false;
                 element.classList.remove('editable-field');
             });
+        });
+        
+        // Remove event listeners
+        document.querySelectorAll('.time-slot .editable-field').forEach(field => {
+            field.removeEventListener('blur', this.agendaBlurHandler);
+            field.removeEventListener('keydown', this.agendaKeydownHandler);
         });
     }
 

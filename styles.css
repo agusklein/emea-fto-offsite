@@ -276,8 +276,9 @@ body {
     transition: all 0.3s ease;
     opacity: 0.8;
     transform: scale(0.9);
-    z-index: 10;
+    z-index: 15; /* Higher than editable content */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    pointer-events: auto; /* Ensure it's clickable */
 }
 
 .time-slot:hover .activity-color-btn {
@@ -291,6 +292,13 @@ body {
     color: white;
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* In edit mode, make color buttons more visible */
+.time-slot.editable-mode .activity-color-btn {
+    opacity: 1;
+    transform: scale(1);
+    border-color: var(--aws-light-blue);
 }
 
 .time {
@@ -323,6 +331,7 @@ body {
     padding: 2px 4px;
     border-radius: 3px;
     transition: all 0.3s ease;
+    min-height: 1.2em;
 }
 
 .time-slot.editable-mode .editable-field:hover {
@@ -331,6 +340,30 @@ body {
 }
 
 .time-slot.editable-mode .editable-field:focus {
+    background: rgba(75, 156, 211, 0.1);
+    outline: 2px solid var(--aws-light-blue);
+    outline-offset: 1px;
+}
+
+/* Ensure editable elements in agenda are clickable */
+.time-slot .time[contenteditable="true"],
+.time-slot .session h4[contenteditable="true"],
+.time-slot .session p[contenteditable="true"] {
+    cursor: text;
+    position: relative;
+    z-index: 5;
+}
+
+.time-slot .time[contenteditable="true"]:hover,
+.time-slot .session h4[contenteditable="true"]:hover,
+.time-slot .session p[contenteditable="true"]:hover {
+    background: rgba(255, 153, 0, 0.1);
+    outline: 1px dashed var(--aws-orange);
+}
+
+.time-slot .time[contenteditable="true"]:focus,
+.time-slot .session h4[contenteditable="true"]:focus,
+.time-slot .session p[contenteditable="true"]:focus {
     background: rgba(75, 156, 211, 0.1);
     outline: 2px solid var(--aws-light-blue);
     outline-offset: 1px;
