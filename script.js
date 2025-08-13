@@ -1,946 +1,827 @@
-// EMEA FTO Offsite Website JavaScript
-// Enhanced functionality for participant management and agenda interaction
+// EMEA FTO Offsite Website - Simplified Working Version
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Website loaded successfully');
+    
+    // Initialize functionality
+    initializeButtons();
+    initializeColorPickers();
+    initializeDragAndDrop();
+    initializeAddActivityButtons();
+    loadSavedData();
+    
+    // Auto-save every 30 seconds
+    setInterval(saveAllData, 30000);
+});
 
-class OffsiteManager {
-    constructor() {
-        this.participants = [];
-        this.agenda = [];
-        this.editMode = false;
-        this.colorMode = false;
-        this.autoSaveInterval = null;
-        this.activityTypes = {
-            meeting: { name: '🏢 Meetings', color: '#4B9CD3' },
-            workshop: { name: '🛠️ Workshops', color: '#FF9900' },
-            demo: { name: '💻 Demos', color: '#8C4FFF' },
-            social: { name: '🍽️ Social', color: '#FF6B6B' },
-            break: { name: '☕ Breaks', color: '#4ECDC4' },
-            free: { name: '🆓 Free Time', color: '#95E1D3' },
-            arrival: { name: '✈️ Arrival', color: '#FFA726' }
-        };
-        this.individualActivityColors = {}; // Track individual activity colors
-        
-        this.init();
+// Initialize all button functionality
+function initializeButtons() {
+    console.log('Initializing buttons...');
+    
+    // Edit Mode Button
+    const editModeBtn = document.getElementById('edit-mode-btn');
+    if (editModeBtn) {
+        editModeBtn.addEventListener('click', toggleEditMode);
+        console.log('Edit mode button initialized');
     }
-        this.init();
+    
+    // Add Activity Button
+    const addActivityBtn = document.getElementById('add-activity-btn');
+    if (addActivityBtn) {
+        addActivityBtn.addEventListener('click', showAddActivityModal);
+        console.log('Add activity button initialized');
     }
-
-    init() {
-        this.loadData();
-        this.bindEvents();
-        this.startAutoSave();
-        this.updateLastModified();
-        this.updateActivityTypeStyles();
-        
-        // Add fade-in animation to sections
-        this.animateElements();
+    
+    // Export Agenda Button
+    const exportAgendaBtn = document.getElementById('export-agenda-btn');
+    if (exportAgendaBtn) {
+        exportAgendaBtn.addEventListener('click', exportAgenda);
+        console.log('Export agenda button initialized');
     }
-
-    bindEvents() {
-        // Participant management
-        document.getElementById('add-participant-btn')?.addEventListener('click', () => this.addParticipant());
-        document.getElementById('export-participants-btn')?.addEventListener('click', () => this.exportParticipants());
-        document.getElementById('save-data-btn')?.addEventListener('click', () => this.saveData());
-
-        // Agenda management
-        document.getElementById('add-activity-btn')?.addEventListener('click', () => this.addActivity());
-        document.getElementById('edit-mode-btn')?.addEventListener('click', () => this.toggleEditMode());
-        document.getElementById('export-agenda-btn')?.addEventListener('click', () => this.exportAgenda());
-        document.getElementById('color-mode-btn')?.addEventListener('click', () => this.toggleColorMode());
-
-        // New functionality
-        document.getElementById('add-activity-type-btn')?.addEventListener('click', () => this.addActivityType());
-        document.getElementById('customize-legend-btn')?.addEventListener('click', () => this.customizeLegend());
-
-        // Color picker buttons and activity interactions
-        document.addEventListener('click', (e) => {
-            // Handle activity type color picker buttons (in legend)
-            if (e.target.classList.contains('color-picker-btn')) {
-                const activityType = e.target.dataset.type;
-                this.openColorPicker(activityType);
-                return;
-            }
-            
-            // Handle individual activity color picker buttons
-            if (e.target.classList.contains('activity-color-btn')) {
-                e.preventDefault();
-                e.stopPropagation(); // Prevent time-slot click
-                const activityId = e.target.dataset.activity;
-                console.log('Activity color button clicked:', activityId); // Debug log
-                this.openActivityColorPicker(activityId, e.target);
-                return;
-            }
-            
-            // Handle time-slot clicks for edit mode (only if not clicking on color button)
-            if (e.target.closest('.time-slot') && this.editMode && !e.target.classList.contains('activity-color-btn')) {
-                // Allow normal editing functionality
-                return;
-            }
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
-
-        // Auto-save on content changes for ALL editable elements
-        document.addEventListener('input', (e) => {
-            if (e.target.contentEditable === 'true') {
-                this.scheduleAutoSave();
-            }
-        });
-
-        // Auto-save when losing focus on editable elements (but not agenda items in edit mode)
-        document.addEventListener('blur', (e) => {
-            if (e.target.contentEditable === 'true') {
-                // Skip if this is an agenda item being handled by edit mode
-                if (e.target.closest('.time-slot') && this.editMode) {
-                    return; // Let edit mode handle this
-                }
-                
-                this.saveData();
-                this.showMessage('Changes saved automatically', 'success');
-            }
-        }, true);
-
-        // Handle Enter key in editable elements
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.target.contentEditable === 'true') {
-                // Skip if this is an agenda item being handled by edit mode
-                if (e.target.closest('.time-slot') && this.editMode) {
-                    return; // Let edit mode handle this
-                }
-                
-                // Allow Enter in paragraph elements, but blur for titles
-                if (e.target.tagName === 'H1' || e.target.tagName === 'H2' || 
-                    e.target.tagName === 'H3' || e.target.tagName === 'H4' || 
-                    e.target.classList.contains('day-subtitle') ||
-                    e.target.tagName === 'TH') {
-                    e.preventDefault();
-                    e.target.blur();
-                }
-            }
-        });
-
-        // Handle participant table changes
-        this.bindParticipantEvents();
-        
-        // Handle agenda interactions
-        this.bindAgendaEvents();
+    
+    // Color Mode Button
+    const colorModeBtn = document.getElementById('color-mode-btn');
+    if (colorModeBtn) {
+        colorModeBtn.addEventListener('click', toggleColorMode);
+        console.log('Color mode button initialized');
     }
-
-    bindParticipantEvents() {
-        const table = document.getElementById('participantsTable');
-        if (!table) return;
-
-        // Handle cell editing
-        table.addEventListener('blur', (e) => {
-            if (e.target.contentEditable === 'true') {
-                this.saveData();
-                this.showMessage('Data saved automatically', 'success');
-            }
-        }, true);
-
-        // Handle Enter key in cells
-        table.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.target.contentEditable === 'true') {
-                e.preventDefault();
-                e.target.blur();
-            }
-        });
+    
+    // Participant buttons
+    const addParticipantBtn = document.getElementById('add-participant-btn');
+    if (addParticipantBtn) {
+        addParticipantBtn.addEventListener('click', addParticipant);
     }
-
-    bindAgendaEvents() {
-        // Agenda events are now handled in enableAgendaEditing/disableAgendaEditing
-        // This function can be used for other agenda-related events if needed
+    
+    const exportParticipantsBtn = document.getElementById('export-participants-btn');
+    if (exportParticipantsBtn) {
+        exportParticipantsBtn.addEventListener('click', exportParticipants);
     }
-
-    addParticipant() {
-        const tbody = document.getElementById('participantsBody');
-        if (!tbody) return;
-
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td contenteditable="true">New Participant</td>
-            <td contenteditable="true">None</td>
-            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-        `;
-        
-        tbody.appendChild(newRow);
-        newRow.classList.add('fade-in');
-        
-        // Focus on the first cell
-        const firstCell = newRow.querySelector('td[contenteditable="true"]');
-        if (firstCell) {
-            firstCell.focus();
-            firstCell.select();
-        }
-        
-        this.saveData();
-        this.showMessage('New participant added', 'success');
-    }
-
-    addActivity() {
-        // Create a modal or form for adding new activities
-        const activity = prompt('Enter activity details (format: Day|Activity|Time|Owner):');
-        if (!activity) return;
-
-        const parts = activity.split('|');
-        if (parts.length !== 4) {
-            this.showMessage('Please use format: Day|Activity|Time|Owner', 'error');
-            return;
-        }
-
-        // Add to appropriate day column
-        this.addActivityToCalendar(parts[0], parts[1], parts[2], parts[3]);
-        this.showMessage('Activity added successfully', 'success');
-    }
-
-    addActivityToCalendar(day, activity, time, owner) {
-        // Find the appropriate day column
-        const dayColumns = document.querySelectorAll('.day-column');
-        let targetColumn = null;
-
-        dayColumns.forEach(column => {
-            const header = column.querySelector('.day-header h3');
-            if (header && header.textContent.includes(day)) {
-                targetColumn = column;
-            }
-        });
-
-        if (!targetColumn) {
-            this.showMessage('Day not found. Please check the day format.', 'error');
-            return;
-        }
-
-        // Create new time slot
-        const newSlot = document.createElement('div');
-        newSlot.className = 'time-slot meeting';
-        newSlot.innerHTML = `
-            <div class="time">${time}</div>
-            <div class="session">
-                <h4>${activity}</h4>
-                <p><strong>Owner:</strong> ${owner}</p>
-            </div>
-        `;
-
-        targetColumn.appendChild(newSlot);
-        newSlot.classList.add('fade-in');
-    }
-
-    toggleEditMode() {
-        this.editMode = !this.editMode;
-        const btn = document.getElementById('edit-mode-btn');
-        
-        if (this.editMode) {
-            btn.textContent = '✅ Exit Edit';
-            btn.style.background = '#ff4757';
-            this.enableAgendaEditing();
-            this.showMessage('Edit mode enabled. Click on times, titles, or details to edit directly.', 'success');
-        } else {
-            btn.textContent = '✏️ Edit Mode';
-            btn.style.background = '#FF9900';
-            this.disableAgendaEditing();
-            this.showMessage('Edit mode disabled.', 'success');
-        }
-    }
-
-    enableAgendaEditing() {
-        // Make time slots editable
-        document.querySelectorAll('.time-slot').forEach(slot => {
-            slot.classList.add('editable-mode');
-            
-            // Make time editable
-            const timeElement = slot.querySelector('.time');
-            if (timeElement) {
-                timeElement.contentEditable = true;
-                timeElement.classList.add('editable-field');
-            }
-            
-            // Make session title editable
-            const titleElement = slot.querySelector('.session h4');
-            if (titleElement) {
-                titleElement.contentEditable = true;
-                titleElement.classList.add('editable-field');
-            }
-            
-            // Make session details editable
-            const detailElements = slot.querySelectorAll('.session p');
-            detailElements.forEach(detail => {
-                detail.contentEditable = true;
-                detail.classList.add('editable-field');
-            });
-        });
-        
-        // Add save handlers for agenda items
-        document.querySelectorAll('.time-slot .editable-field').forEach(field => {
-            // Remove existing listeners to avoid duplicates
-            field.removeEventListener('blur', this.agendaBlurHandler);
-            field.removeEventListener('keydown', this.agendaKeydownHandler);
-            
-            // Add new listeners
-            field.addEventListener('blur', this.agendaBlurHandler.bind(this));
-            field.addEventListener('keydown', this.agendaKeydownHandler.bind(this));
-        });
-    }
-
-    agendaBlurHandler(e) {
-        this.saveData();
-        this.showMessage('Agenda changes saved', 'success');
-    }
-
-    agendaKeydownHandler(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            e.target.blur();
-        }
-    }
-
-    disableAgendaEditing() {
-        // Remove editable attributes
-        document.querySelectorAll('.time-slot').forEach(slot => {
-            slot.classList.remove('editable-mode');
-            
-            // Remove contentEditable from all elements
-            const editableElements = slot.querySelectorAll('[contenteditable="true"]');
-            editableElements.forEach(element => {
-                element.contentEditable = false;
-                element.classList.remove('editable-field');
-            });
-        });
-        
-        // Remove event listeners
-        document.querySelectorAll('.time-slot .editable-field').forEach(field => {
-            field.removeEventListener('blur', this.agendaBlurHandler);
-            field.removeEventListener('keydown', this.agendaKeydownHandler);
-        });
-    }
-
-    toggleColorMode() {
-        this.colorMode = !this.colorMode;
-        const btn = document.getElementById('color-mode-btn');
-        
-        if (this.colorMode) {
-            btn.textContent = '🎨 Exit Color';
-            btn.style.background = '#8C4FFF';
-            this.showColorPalette();
-        } else {
-            btn.textContent = '🎨 Color Mode';
-            btn.style.background = '#FF9900';
-            this.hideColorPalette();
-        }
-    }
-
-    showColorPalette() {
-        // Create color palette for activity categorization
-        const palette = document.createElement('div');
-        palette.id = 'color-palette';
-        palette.className = 'color-palette';
-        palette.innerHTML = `
-            <h4>Click an activity, then choose a category:</h4>
-            <div class="color-options">
-                <button class="color-btn meeting" data-category="meeting">🏢 Meeting</button>
-                <button class="color-btn workshop" data-category="workshop">🛠️ Workshop</button>
-                <button class="color-btn demo" data-category="demo">💻 Demo</button>
-                <button class="color-btn social" data-category="social">🍽️ Social</button>
-                <button class="color-btn break" data-category="break">☕ Break</button>
-                <button class="color-btn free" data-category="free">🆓 Free</button>
-            </div>
-        `;
-        
-        document.querySelector('.agenda').appendChild(palette);
-        
-        // Bind color selection events
-        palette.querySelectorAll('.color-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const category = e.target.dataset.category;
-                this.applyColorToSelected(category);
-            });
-        });
-    }
-
-    hideColorPalette() {
-        const palette = document.getElementById('color-palette');
-        if (palette) {
-            palette.remove();
-        }
-    }
-
-    applyColorToSelected(category) {
-        // This would apply to a selected time slot
-        // For now, just show a message
-        this.showMessage(`Color category "${category}" ready. Click on an activity to apply.`, 'success');
-    }
-
-    addActivityType() {
-        const name = prompt('Enter new activity type name (with emoji):');
-        if (!name) return;
-
-        const typeId = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (this.activityTypes[typeId]) {
-            this.showMessage('Activity type already exists', 'error');
-            return;
-        }
-
-        // Add new activity type with default color
-        this.activityTypes[typeId] = {
-            name: name,
-            color: '#6C757D' // Default gray color
-        };
-
-        this.updateLegendDisplay();
-        this.updateActivityTypeStyles();
-        this.saveData();
-        this.showMessage('New activity type added', 'success');
-    }
-
-    customizeLegend() {
-        this.showMessage('Click on the 🎨 buttons next to each activity type to change colors, or edit the text directly!', 'success');
-    }
-
-    openColorPicker(activityType) {
-        const modal = this.createColorPickerModal(activityType);
-        document.body.appendChild(modal);
-    }
-
-    createColorPickerModal(activityType) {
-        const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        
-        const modal = document.createElement('div');
-        modal.className = 'color-picker-modal';
-        
-        const currentType = this.activityTypes[activityType];
-        
-        modal.innerHTML = `
-            <h3>Choose Color for ${currentType.name}</h3>
-            <div class="color-options">
-                <div class="color-option" style="background: #4B9CD3" data-color="#4B9CD3"></div>
-                <div class="color-option" style="background: #FF9900" data-color="#FF9900"></div>
-                <div class="color-option" style="background: #8C4FFF" data-color="#8C4FFF"></div>
-                <div class="color-option" style="background: #FF6B6B" data-color="#FF6B6B"></div>
-                <div class="color-option" style="background: #4ECDC4" data-color="#4ECDC4"></div>
-                <div class="color-option" style="background: #95E1D3" data-color="#95E1D3"></div>
-                <div class="color-option" style="background: #FFA726" data-color="#FFA726"></div>
-                <div class="color-option" style="background: #E74C3C" data-color="#E74C3C"></div>
-                <div class="color-option" style="background: #9B59B6" data-color="#9B59B6"></div>
-                <div class="color-option" style="background: #2ECC71" data-color="#2ECC71"></div>
-                <div class="color-option" style="background: #F39C12" data-color="#F39C12"></div>
-                <div class="color-option" style="background: #34495E" data-color="#34495E"></div>
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                <button class="modal-btn primary" id="apply-color-btn">Apply</button>
-            </div>
-        `;
-
-        let selectedColor = currentType.color;
-
-        // Handle color selection
-        modal.querySelectorAll('.color-option').forEach(option => {
-            if (option.dataset.color === currentType.color) {
-                option.classList.add('selected');
-            }
-            
-            option.addEventListener('click', () => {
-                modal.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedColor = option.dataset.color;
-            });
-        });
-
-        // Handle apply button
-        modal.querySelector('#apply-color-btn').addEventListener('click', () => {
-            this.updateActivityTypeColor(activityType, selectedColor);
-            overlay.remove();
-        });
-
-        // Handle overlay click to close
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.remove();
-            }
-        });
-
-        overlay.appendChild(modal);
-        return overlay;
-    }
-
-    updateActivityTypeColor(activityType, newColor) {
-        this.activityTypes[activityType].color = newColor;
-        this.updateLegendDisplay();
-        this.updateActivityTypeStyles();
-        this.saveData();
-        this.showMessage(`Color updated for ${this.activityTypes[activityType].name}`, 'success');
-    }
-
-    updateLegendDisplay() {
-        const legendItems = document.getElementById('legendItems');
-        if (!legendItems) return;
-
-        legendItems.innerHTML = '';
-        
-        Object.keys(this.activityTypes).forEach(typeId => {
-            const type = this.activityTypes[typeId];
-            const item = document.createElement('span');
-            item.className = `legend-item ${typeId}`;
-            item.dataset.type = typeId;
-            item.style.background = type.color;
-            
-            item.innerHTML = `
-                <span class="legend-text" contenteditable="true">${type.name}</span>
-                <button class="color-picker-btn" data-type="${typeId}">🎨</button>
-            `;
-            
-            legendItems.appendChild(item);
-        });
-    }
-
-    openActivityColorPicker(activityId, buttonElement) {
-        console.log('Opening color picker for activity:', activityId); // Debug log
-        
-        const timeSlot = buttonElement.closest('.time-slot');
-        if (!timeSlot) {
-            console.error('Could not find time-slot element');
-            return;
-        }
-        
-        const activityTitle = timeSlot.querySelector('h4')?.textContent || 'Unknown Activity';
-        console.log('Activity title:', activityTitle); // Debug log
-        
-        const modal = this.createActivityColorPickerModal(activityId, activityTitle, timeSlot);
-        document.body.appendChild(modal);
-        
-        this.showMessage(`Opening color picker for "${activityTitle}"`, 'success');
-    }
-
-    createActivityColorPickerModal(activityId, activityTitle, timeSlot) {
-        const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        
-        const modal = document.createElement('div');
-        modal.className = 'color-picker-modal';
-        
-        const currentColor = this.individualActivityColors[activityId] || 
-                           this.getDefaultColorForActivity(timeSlot);
-        
-        modal.innerHTML = `
-            <h3>Choose Color for "${activityTitle}"</h3>
-            <div class="color-options">
-                <div class="color-option" style="background: #4B9CD3" data-color="#4B9CD3"></div>
-                <div class="color-option" style="background: #FF9900" data-color="#FF9900"></div>
-                <div class="color-option" style="background: #8C4FFF" data-color="#8C4FFF"></div>
-                <div class="color-option" style="background: #FF6B6B" data-color="#FF6B6B"></div>
-                <div class="color-option" style="background: #4ECDC4" data-color="#4ECDC4"></div>
-                <div class="color-option" style="background: #95E1D3" data-color="#95E1D3"></div>
-                <div class="color-option" style="background: #FFA726" data-color="#FFA726"></div>
-                <div class="color-option" style="background: #E74C3C" data-color="#E74C3C"></div>
-                <div class="color-option" style="background: #9B59B6" data-color="#9B59B6"></div>
-                <div class="color-option" style="background: #2ECC71" data-color="#2ECC71"></div>
-                <div class="color-option" style="background: #F39C12" data-color="#F39C12"></div>
-                <div class="color-option" style="background: #34495E" data-color="#34495E"></div>
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                <button class="modal-btn" style="background: #dc3545; color: white;" id="reset-color-btn">Reset to Default</button>
-                <button class="modal-btn primary" id="apply-activity-color-btn">Apply</button>
-            </div>
-        `;
-
-        let selectedColor = currentColor;
-
-        // Handle color selection
-        modal.querySelectorAll('.color-option').forEach(option => {
-            if (option.dataset.color === currentColor) {
-                option.classList.add('selected');
-            }
-            
-            option.addEventListener('click', () => {
-                modal.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedColor = option.dataset.color;
-            });
-        });
-
-        // Handle apply button
-        modal.querySelector('#apply-activity-color-btn').addEventListener('click', () => {
-            this.updateIndividualActivityColor(activityId, selectedColor, timeSlot);
-            overlay.remove();
-        });
-
-        // Handle reset button
-        modal.querySelector('#reset-color-btn').addEventListener('click', () => {
-            this.resetIndividualActivityColor(activityId, timeSlot);
-            overlay.remove();
-        });
-
-        // Handle overlay click to close
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.remove();
-            }
-        });
-
-        overlay.appendChild(modal);
-        return overlay;
-    }
-
-    getDefaultColorForActivity(timeSlot) {
-        const category = timeSlot.dataset.category;
-        return this.activityTypes[category]?.color || '#6C757D';
-    }
-
-    updateIndividualActivityColor(activityId, newColor, timeSlot) {
-        this.individualActivityColors[activityId] = newColor;
-        this.applyIndividualActivityColor(activityId, newColor, timeSlot);
-        this.saveData();
-        this.showMessage('Activity color updated successfully', 'success');
-    }
-
-    resetIndividualActivityColor(activityId, timeSlot) {
-        delete this.individualActivityColors[activityId];
-        const defaultColor = this.getDefaultColorForActivity(timeSlot);
-        this.applyIndividualActivityColor(activityId, defaultColor, timeSlot);
-        this.saveData();
-        this.showMessage('Activity color reset to default', 'success');
-    }
-
-    applyIndividualActivityColor(activityId, color, timeSlot) {
-        // Apply the color directly to the time slot
-        timeSlot.style.borderLeftColor = color;
-        timeSlot.style.borderLeftWidth = '4px';
-        timeSlot.style.borderLeftStyle = 'solid';
-    }
-
-    updateActivityTypeStyles() {
-        // Create or update dynamic styles for activity types
-        let styleElement = document.getElementById('dynamic-activity-styles');
-        if (!styleElement) {
-            styleElement = document.createElement('style');
-            styleElement.id = 'dynamic-activity-styles';
-            document.head.appendChild(styleElement);
-        }
-
-        let css = '';
-        Object.keys(this.activityTypes).forEach(typeId => {
-            const color = this.activityTypes[typeId].color;
-            css += `
-                .legend-item.${typeId} { background: ${color} !important; }
-                .time-slot.${typeId} { border-left: 4px solid ${color} !important; }
-            `;
-        });
-
-        // Add individual activity colors
-        Object.keys(this.individualActivityColors).forEach(activityId => {
-            const color = this.individualActivityColors[activityId];
-            css += `
-                .time-slot[data-activity="${activityId}"] { border-left: 4px solid ${color} !important; }
-            `;
-        });
-
-        styleElement.textContent = css;
-    }
-
-    exportParticipants() {
-        const table = document.getElementById('participantsTable');
-        if (!table) return;
-
-        let csv = 'Participant,Dietary Restrictions,Arrival Time,Departure Time,Hotel\n';
-        
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length >= 5) {
-                const rowData = [
-                    this.escapeCsv(cells[0].textContent),
-                    this.escapeCsv(cells[1].textContent),
-                    this.escapeCsv(cells[2].textContent),
-                    this.escapeCsv(cells[3].textContent),
-                    this.escapeCsv(cells[4].textContent)
-                ];
-                csv += rowData.join(',') + '\n';
-            }
-        });
-
-        this.downloadFile(csv, 'emea-fto-participants.csv', 'text/csv');
-        this.showMessage('Participants exported successfully', 'success');
-    }
-
-    exportAgenda() {
-        let agenda = 'EMEA FTO Offsite Agenda - October 2025\n\n';
-        
-        document.querySelectorAll('.day-column').forEach(dayCol => {
-            const dayHeader = dayCol.querySelector('.day-header h3');
-            if (dayHeader) {
-                agenda += `${dayHeader.textContent}\n`;
-                agenda += '='.repeat(dayHeader.textContent.length) + '\n\n';
-                
-                dayCol.querySelectorAll('.time-slot').forEach(slot => {
-                    const time = slot.querySelector('.time')?.textContent || '';
-                    const title = slot.querySelector('.session h4')?.textContent || '';
-                    const details = slot.querySelector('.session p')?.textContent || '';
-                    
-                    agenda += `${time}: ${title}\n`;
-                    if (details) {
-                        agenda += `   ${details}\n`;
-                    }
-                    agenda += '\n';
-                });
-                
-                agenda += '\n';
-            }
-        });
-
-        this.downloadFile(agenda, 'emea-fto-agenda.txt', 'text/plain');
-        this.showMessage('Agenda exported successfully', 'success');
-    }
-
-    saveData() {
-        const data = {
-            participants: this.getParticipantsData(),
-            editableContent: this.getAllEditableContent(),
-            activityTypes: this.activityTypes,
-            individualActivityColors: this.individualActivityColors,
-            lastModified: new Date().toISOString(),
-            version: '1.0'
-        };
-        
-        localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
-        this.updateLastModified();
-    }
-
-    getAllEditableContent() {
-        const editableElements = document.querySelectorAll('[contenteditable="true"]');
-        const content = {};
-        
-        editableElements.forEach((element, index) => {
-            // Create a unique identifier for each editable element
-            const id = element.id || `editable-${index}`;
-            content[id] = {
-                tagName: element.tagName,
-                className: element.className,
-                innerHTML: element.innerHTML,
-                textContent: element.textContent
-            };
-        });
-        
-        return content;
-    }
-
-    loadData() {
-        const saved = localStorage.getItem('emea-fto-offsite-data');
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                this.participants = data.participants || [];
-                if (data.activityTypes) {
-                    this.activityTypes = { ...this.activityTypes, ...data.activityTypes };
-                }
-                if (data.individualActivityColors) {
-                    this.individualActivityColors = data.individualActivityColors;
-                    // Apply individual colors after loading
-                    setTimeout(() => this.applyLoadedIndividualColors(), 100);
-                }
-                // Load participants back to table if needed
-            } catch (e) {
-                console.error('Error loading saved data:', e);
-            }
-        }
-    }
-
-    applyLoadedIndividualColors() {
-        Object.keys(this.individualActivityColors).forEach(activityId => {
-            const color = this.individualActivityColors[activityId];
-            const timeSlot = document.querySelector(`[data-activity="${activityId}"]`);
-            if (timeSlot) {
-                this.applyIndividualActivityColor(activityId, color, timeSlot);
-            }
-        });
-    }
-
-    getParticipantsData() {
-        const table = document.getElementById('participantsTable');
-        if (!table) return [];
-
-        const participants = [];
-        const rows = table.querySelectorAll('tbody tr');
-        
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length >= 5) {
-                participants.push({
-                    name: cells[0].textContent.trim(),
-                    dietary: cells[1].textContent.trim(),
-                    arrival: cells[2].textContent.trim(),
-                    departure: cells[3].textContent.trim(),
-                    hotel: cells[4].textContent.trim()
-                });
-            }
-        });
-        
-        return participants;
-    }
-
-    startAutoSave() {
-        this.autoSaveInterval = setInterval(() => {
-            this.saveData();
-        }, 30000); // Auto-save every 30 seconds
-    }
-
-    scheduleAutoSave() {
-        clearTimeout(this.autoSaveTimeout);
-        this.autoSaveTimeout = setTimeout(() => {
-            this.saveData();
-        }, 2000); // Save 2 seconds after last change
-    }
-
-    handleKeyboardShortcuts(e) {
-        if (e.ctrlKey || e.metaKey) {
-            switch (e.key) {
-                case 's':
-                    e.preventDefault();
-                    this.saveData();
-                    this.showMessage('Data saved manually', 'success');
-                    break;
-                case 'e':
-                    e.preventDefault();
-                    this.exportParticipants();
-                    break;
-            }
-        }
-    }
-
-    updateLastModified() {
-        const element = document.getElementById('lastUpdated');
-        if (element) {
-            element.textContent = new Date().toLocaleString();
-        }
-    }
-
-    showMessage(text, type = 'success') {
-        // Remove existing messages
-        document.querySelectorAll('.message').forEach(msg => msg.remove());
-        
-        const message = document.createElement('div');
-        message.className = `message ${type}`;
-        message.textContent = text;
-        
-        // Insert after the first section
-        const firstSection = document.querySelector('main section');
-        if (firstSection) {
-            firstSection.parentNode.insertBefore(message, firstSection.nextSibling);
-        }
-        
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            message.remove();
-        }, 3000);
-    }
-
-    animateElements() {
-        // Add fade-in animation to main sections
-        const sections = document.querySelectorAll('section');
-        sections.forEach((section, index) => {
-            setTimeout(() => {
-                section.classList.add('fade-in');
-            }, index * 200);
-        });
-    }
-
-    escapeCsv(text) {
-        if (text.includes(',') || text.includes('"') || text.includes('\n')) {
-            return '"' + text.replace(/"/g, '""') + '"';
-        }
-        return text;
-    }
-
-    downloadFile(content, filename, mimeType) {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+    
+    const saveDataBtn = document.getElementById('save-data-btn');
+    if (saveDataBtn) {
+        saveDataBtn.addEventListener('click', saveAllData);
     }
 }
 
-// Global function for delete buttons
+// Global variables
+let editMode = false;
+let colorMode = false;
+let draggedElement = null;
+
+// Toggle Edit Mode
+function toggleEditMode() {
+    editMode = !editMode;
+    const btn = document.getElementById('edit-mode-btn');
+    
+    if (editMode) {
+        btn.textContent = '✅ Exit Edit';
+        btn.style.background = '#dc3545';
+        enableEditing();
+        showMessage('Edit mode enabled. Click on any text to edit it.', 'success');
+    } else {
+        btn.textContent = '✏️ Edit Mode';
+        btn.style.background = '#FF9900';
+        disableEditing();
+        showMessage('Edit mode disabled.', 'success');
+    }
+}
+
+// Enable editing for all agenda items
+function enableEditing() {
+    // Make all agenda text editable
+    document.querySelectorAll('.time-slot .time, .time-slot h4, .time-slot p').forEach(element => {
+        element.contentEditable = true;
+        element.classList.add('editable-active');
+        element.addEventListener('blur', saveAllData);
+    });
+    
+    // Add visual indicators
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.classList.add('edit-mode-active');
+    });
+}
+
+// Disable editing
+function disableEditing() {
+    document.querySelectorAll('.time-slot .time, .time-slot h4, .time-slot p').forEach(element => {
+        element.contentEditable = false;
+        element.classList.remove('editable-active');
+        element.removeEventListener('blur', saveAllData);
+    });
+    
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.classList.remove('edit-mode-active');
+    });
+}
+
+// Toggle Color Mode
+function toggleColorMode() {
+    colorMode = !colorMode;
+    const btn = document.getElementById('color-mode-btn');
+    
+    if (colorMode) {
+        btn.textContent = '🎨 Exit Color';
+        btn.style.background = '#8C4FFF';
+        showColorPickers();
+        showMessage('Color mode enabled. Click on activities to change colors.', 'success');
+    } else {
+        btn.textContent = '🎨 Color Mode';
+        btn.style.background = '#FF9900';
+        hideColorPickers();
+        showMessage('Color mode disabled.', 'success');
+    }
+}
+
+// Show color picker buttons
+function showColorPickers() {
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        if (!slot.querySelector('.color-picker-btn-inline')) {
+            const colorBtn = document.createElement('button');
+            colorBtn.className = 'color-picker-btn-inline';
+            colorBtn.innerHTML = '🎨';
+            colorBtn.onclick = (e) => {
+                e.stopPropagation();
+                openColorPickerForActivity(slot);
+            };
+            slot.appendChild(colorBtn);
+        }
+    });
+}
+
+// Hide color picker buttons
+function hideColorPickers() {
+    document.querySelectorAll('.color-picker-btn-inline').forEach(btn => {
+        btn.remove();
+    });
+}
+
+// Open color picker for specific activity
+function openColorPickerForActivity(timeSlot) {
+    const activityTitle = timeSlot.querySelector('h4')?.textContent || 'Activity';
+    
+    const colors = [
+        '#4B9CD3', '#FF9900', '#8C4FFF', '#FF6B6B', 
+        '#4ECDC4', '#95E1D3', '#FFA726', '#E74C3C',
+        '#9B59B6', '#2ECC71', '#F39C12', '#34495E'
+    ];
+    
+    const modal = document.createElement('div');
+    modal.className = 'color-modal';
+    modal.innerHTML = `
+        <div class="color-modal-content">
+            <h3>Choose color for "${activityTitle}"</h3>
+            <div class="color-grid">
+                ${colors.map(color => `
+                    <div class="color-option" style="background: ${color}" onclick="applyColor('${color}', this)"></div>
+                `).join('')}
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeColorModal()" class="btn-secondary">Cancel</button>
+                <button onclick="resetActivityColor()" class="btn-danger">Reset</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Store reference to current time slot
+    window.currentTimeSlot = timeSlot;
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeColorModal();
+        }
+    });
+}
+
+// Apply color to activity
+function applyColor(color, element) {
+    if (window.currentTimeSlot) {
+        window.currentTimeSlot.style.borderLeftColor = color;
+        window.currentTimeSlot.style.borderLeftWidth = '6px';
+        window.currentTimeSlot.style.borderLeftStyle = 'solid';
+        
+        // Save the color
+        const activityId = window.currentTimeSlot.dataset.activity || generateActivityId();
+        window.currentTimeSlot.dataset.activity = activityId;
+        
+        saveActivityColor(activityId, color);
+        showMessage('Color applied successfully!', 'success');
+    }
+    closeColorModal();
+}
+
+// Reset activity color
+function resetActivityColor() {
+    if (window.currentTimeSlot) {
+        window.currentTimeSlot.style.borderLeftColor = '';
+        window.currentTimeSlot.style.borderLeftWidth = '';
+        window.currentTimeSlot.style.borderLeftStyle = '';
+        
+        const activityId = window.currentTimeSlot.dataset.activity;
+        if (activityId) {
+            removeActivityColor(activityId);
+        }
+        showMessage('Color reset to default!', 'success');
+    }
+    closeColorModal();
+}
+
+// Close color modal
+function closeColorModal() {
+    const modal = document.querySelector('.color-modal');
+    if (modal) {
+        modal.remove();
+    }
+    window.currentTimeSlot = null;
+}
+
+// Initialize color pickers for legend
+function initializeColorPickers() {
+    // Add color picker functionality to legend items
+    document.querySelectorAll('.legend-item').forEach(item => {
+        const colorBtn = document.createElement('button');
+        colorBtn.className = 'legend-color-btn';
+        colorBtn.innerHTML = '🎨';
+        colorBtn.onclick = (e) => {
+            e.stopPropagation();
+            openLegendColorPicker(item);
+        };
+        item.appendChild(colorBtn);
+    });
+}
+
+// Open color picker for legend items
+function openLegendColorPicker(legendItem) {
+    const typeName = legendItem.querySelector('.legend-text')?.textContent || 'Activity Type';
+    const typeClass = legendItem.className.split(' ').find(cls => cls !== 'legend-item');
+    
+    const colors = [
+        '#4B9CD3', '#FF9900', '#8C4FFF', '#FF6B6B', 
+        '#4ECDC4', '#95E1D3', '#FFA726', '#E74C3C',
+        '#9B59B6', '#2ECC71', '#F39C12', '#34495E'
+    ];
+    
+    const modal = document.createElement('div');
+    modal.className = 'color-modal';
+    modal.innerHTML = `
+        <div class="color-modal-content">
+            <h3>Choose color for "${typeName}"</h3>
+            <div class="color-grid">
+                ${colors.map(color => `
+                    <div class="color-option" style="background: ${color}" onclick="applyLegendColor('${color}', '${typeClass}')"></div>
+                `).join('')}
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeColorModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeColorModal();
+        }
+    });
+}
+
+// Apply color to legend and all activities of that type
+function applyLegendColor(color, typeClass) {
+    // Update legend item
+    const legendItem = document.querySelector(`.legend-item.${typeClass}`);
+    if (legendItem) {
+        legendItem.style.background = color;
+    }
+    
+    // Update all time slots of this type
+    document.querySelectorAll(`.time-slot.${typeClass}`).forEach(slot => {
+        slot.style.borderLeftColor = color;
+        slot.style.borderLeftWidth = '4px';
+        slot.style.borderLeftStyle = 'solid';
+    });
+    
+    saveLegendColor(typeClass, color);
+    showMessage(`Color updated for ${typeClass} activities!`, 'success');
+    closeColorModal();
+}
+
+// Initialize drag and drop for reordering
+function initializeDragAndDrop() {
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.draggable = true;
+        slot.addEventListener('dragstart', handleDragStart);
+        slot.addEventListener('dragover', handleDragOver);
+        slot.addEventListener('drop', handleDrop);
+        slot.addEventListener('dragend', handleDragEnd);
+    });
+}
+
+// Drag and drop handlers
+function handleDragStart(e) {
+    draggedElement = this;
+    this.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    if (draggedElement !== this) {
+        const parent = this.parentNode;
+        const draggedIndex = Array.from(parent.children).indexOf(draggedElement);
+        const targetIndex = Array.from(parent.children).indexOf(this);
+        
+        if (draggedIndex < targetIndex) {
+            parent.insertBefore(draggedElement, this.nextSibling);
+        } else {
+            parent.insertBefore(draggedElement, this);
+        }
+        
+        saveAllData();
+        showMessage('Activity order updated!', 'success');
+    }
+    
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.style.opacity = '1';
+    draggedElement = null;
+}
+
+// Initialize + buttons for adding activities to each day
+function initializeAddActivityButtons() {
+    document.querySelectorAll('.day-column').forEach(dayColumn => {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'add-activity-day-btn';
+        addBtn.innerHTML = '➕ Add Activity';
+        addBtn.onclick = () => addActivityToDay(dayColumn);
+        
+        // Insert before the first time-slot or at the end
+        const firstTimeSlot = dayColumn.querySelector('.time-slot');
+        if (firstTimeSlot) {
+            dayColumn.insertBefore(addBtn, firstTimeSlot);
+        } else {
+            dayColumn.appendChild(addBtn);
+        }
+    });
+}
+
+// Add activity to specific day
+function addActivityToDay(dayColumn) {
+    const dayTitle = dayColumn.querySelector('h3')?.textContent || 'Unknown Day';
+    
+    const modal = document.createElement('div');
+    modal.className = 'add-activity-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Add Activity to ${dayTitle}</h3>
+            <form id="addActivityForm">
+                <div class="form-group">
+                    <label>Activity Title:</label>
+                    <input type="text" id="activityTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Time:</label>
+                    <input type="text" id="activityTime" placeholder="e.g., 9:00 AM - 10:00 AM" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="activityDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Activity Type:</label>
+                    <select id="activityType">
+                        <option value="meeting">🏢 Meeting</option>
+                        <option value="workshop">🛠️ Workshop</option>
+                        <option value="demo">💻 Demo</option>
+                        <option value="social">🍽️ Social</option>
+                        <option value="break">☕ Break</option>
+                        <option value="free">🆓 Free Time</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeAddActivityModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Activity</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle form submission
+    document.getElementById('addActivityForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const title = document.getElementById('activityTitle').value;
+        const time = document.getElementById('activityTime').value;
+        const description = document.getElementById('activityDescription').value;
+        const type = document.getElementById('activityType').value;
+        
+        createNewActivity(dayColumn, title, time, description, type);
+        closeAddActivityModal();
+    });
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeAddActivityModal();
+        }
+    });
+}
+
+// Create new activity element
+function createNewActivity(dayColumn, title, time, description, type) {
+    const newActivity = document.createElement('div');
+    newActivity.className = `time-slot ${type}`;
+    newActivity.draggable = true;
+    newActivity.dataset.activity = generateActivityId();
+    
+    newActivity.innerHTML = `
+        <div class="time">${time}</div>
+        <div class="session">
+            <h4>${title}</h4>
+            ${description ? `<p>${description}</p>` : ''}
+        </div>
+    `;
+    
+    // Add event listeners
+    newActivity.addEventListener('dragstart', handleDragStart);
+    newActivity.addEventListener('dragover', handleDragOver);
+    newActivity.addEventListener('drop', handleDrop);
+    newActivity.addEventListener('dragend', handleDragEnd);
+    
+    // Insert before the add button
+    const addBtn = dayColumn.querySelector('.add-activity-day-btn');
+    dayColumn.insertBefore(newActivity, addBtn.nextSibling);
+    
+    saveAllData();
+    showMessage(`Activity "${title}" added successfully!`, 'success');
+}
+
+// Close add activity modal
+function closeAddActivityModal() {
+    const modal = document.querySelector('.add-activity-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Show add activity modal (for main button)
+function showAddActivityModal() {
+    const modal = document.createElement('div');
+    modal.className = 'add-activity-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Add New Activity</h3>
+            <p>Choose a day to add your activity:</p>
+            <div class="day-selection">
+                <button onclick="selectDay('October 14th')" class="day-btn">October 14th</button>
+                <button onclick="selectDay('October 15th')" class="day-btn">October 15th</button>
+                <button onclick="selectDay('October 16th')" class="day-btn">October 16th</button>
+                <button onclick="selectDay('October 17th')" class="day-btn">October 17th</button>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeAddActivityModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeAddActivityModal();
+        }
+    });
+}
+
+// Select day for new activity
+function selectDay(dayName) {
+    closeAddActivityModal();
+    
+    const dayColumn = Array.from(document.querySelectorAll('.day-column')).find(col => 
+        col.querySelector('h3')?.textContent.includes(dayName.split(' ')[1])
+    );
+    
+    if (dayColumn) {
+        addActivityToDay(dayColumn);
+    }
+}
+
+// Utility functions
+function generateActivityId() {
+    return 'activity-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+function showMessage(text, type = 'success') {
+    // Remove existing messages
+    document.querySelectorAll('.message').forEach(msg => msg.remove());
+    
+    const message = document.createElement('div');
+    message.className = `message ${type}`;
+    message.textContent = text;
+    
+    // Insert at top of main content
+    const main = document.querySelector('main');
+    if (main) {
+        main.insertBefore(message, main.firstChild);
+    }
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        message.remove();
+    }, 3000);
+}
+
+// Export functions
+function exportAgenda() {
+    let agenda = 'EMEA FTO Offsite Agenda - October 2025\n\n';
+    
+    document.querySelectorAll('.day-column').forEach(dayCol => {
+        const dayHeader = dayCol.querySelector('.day-header h3');
+        if (dayHeader) {
+            agenda += `${dayHeader.textContent}\n`;
+            agenda += '='.repeat(dayHeader.textContent.length) + '\n\n';
+            
+            dayCol.querySelectorAll('.time-slot').forEach(slot => {
+                const time = slot.querySelector('.time')?.textContent || '';
+                const title = slot.querySelector('.session h4')?.textContent || '';
+                const details = slot.querySelector('.session p')?.textContent || '';
+                
+                agenda += `${time}: ${title}\n`;
+                if (details) {
+                    agenda += `   ${details}\n`;
+                }
+                agenda += '\n';
+            });
+            
+            agenda += '\n';
+        }
+    });
+
+    downloadFile(agenda, 'emea-fto-agenda.txt', 'text/plain');
+    showMessage('Agenda exported successfully!', 'success');
+}
+
+function addParticipant() {
+    const tbody = document.getElementById('participantsBody');
+    if (!tbody) return;
+
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td contenteditable="true">New Participant</td>
+        <td contenteditable="true">None</td>
+        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+        <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+    `;
+    
+    tbody.appendChild(newRow);
+    
+    // Focus on the first cell
+    const firstCell = newRow.querySelector('td[contenteditable="true"]');
+    if (firstCell) {
+        firstCell.focus();
+        firstCell.select();
+    }
+    
+    saveAllData();
+    showMessage('New participant added', 'success');
+}
+
+function exportParticipants() {
+    const table = document.getElementById('participantsTable');
+    if (!table) return;
+
+    let csv = 'Participant,Dietary Restrictions,Arrival Time,Departure Time,Hotel\n';
+    
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            const rowData = [
+                escapeCsv(cells[0].textContent),
+                escapeCsv(cells[1].textContent),
+                escapeCsv(cells[2].textContent),
+                escapeCsv(cells[3].textContent),
+                escapeCsv(cells[4].textContent)
+            ];
+            csv += rowData.join(',') + '\n';
+        }
+    });
+
+    downloadFile(csv, 'emea-fto-participants.csv', 'text/csv');
+    showMessage('Participants exported successfully', 'success');
+}
+
 function deleteParticipant(button) {
     if (confirm('Are you sure you want to remove this participant?')) {
         const row = button.closest('tr');
-        row.style.animation = 'fadeOut 0.3s ease-out';
-        setTimeout(() => {
-            row.remove();
-            window.offsiteManager.saveData();
-            window.offsiteManager.showMessage('Participant removed', 'success');
-        }, 300);
+        row.remove();
+        saveAllData();
+        showMessage('Participant removed', 'success');
     }
 }
 
-// Add fadeOut animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeOut {
-        from { opacity: 1; transform: translateX(0); }
-        to { opacity: 0; transform: translateX(-100%); }
-    }
+// Save and load functions
+function saveAllData() {
+    const data = {
+        agenda: getAgendaData(),
+        participants: getParticipantsData(),
+        colors: getColorData(),
+        lastModified: new Date().toISOString()
+    };
     
-    .color-palette {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin: 1rem 0;
-        border-left: 4px solid var(--aws-orange);
-    }
-    
-    .color-options {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-top: 0.5rem;
-    }
-    
-    .color-btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        color: white;
-        transition: transform 0.2s ease;
-    }
-    
-    .color-btn:hover {
-        transform: scale(1.05);
-    }
-    
-    .color-btn.meeting { background: var(--meeting-color); }
-    .color-btn.workshop { background: var(--workshop-color); }
-    .color-btn.demo { background: var(--demo-color); }
-    .color-btn.social { background: var(--social-color); }
-    .color-btn.break { background: var(--break-color); }
-    .color-btn.free { background: var(--free-color); }
-`;
-document.head.appendChild(style);
+    localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
+    console.log('Data saved successfully');
+}
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-    window.offsiteManager = new OffsiteManager();
-});
+function loadSavedData() {
+    const saved = localStorage.getItem('emea-fto-offsite-data');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            if (data.colors) {
+                loadColorData(data.colors);
+            }
+            console.log('Data loaded successfully');
+        } catch (e) {
+            console.error('Error loading saved data:', e);
+        }
+    }
+}
 
-// Service Worker for offline functionality (optional)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
+function getAgendaData() {
+    const agenda = {};
+    document.querySelectorAll('.day-column').forEach((dayCol, index) => {
+        const dayTitle = dayCol.querySelector('h3')?.textContent || `Day ${index + 1}`;
+        const activities = [];
+        
+        dayCol.querySelectorAll('.time-slot').forEach(slot => {
+            activities.push({
+                time: slot.querySelector('.time')?.textContent || '',
+                title: slot.querySelector('h4')?.textContent || '',
+                description: slot.querySelector('p')?.textContent || '',
+                type: slot.className.split(' ').find(cls => cls !== 'time-slot') || 'meeting',
+                id: slot.dataset.activity || generateActivityId()
             });
+        });
+        
+        agenda[dayTitle] = activities;
     });
+    
+    return agenda;
 }
+
+function getParticipantsData() {
+    const table = document.getElementById('participantsTable');
+    if (!table) return [];
+
+    const participants = [];
+    const rows = table.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            participants.push({
+                name: cells[0].textContent.trim(),
+                dietary: cells[1].textContent.trim(),
+                arrival: cells[2].textContent.trim(),
+                departure: cells[3].textContent.trim(),
+                hotel: cells[4].textContent.trim()
+            });
+        }
+    });
+    
+    return participants;
+}
+
+function getColorData() {
+    const colors = {
+        activities: {},
+        legend: {}
+    };
+    
+    // Save individual activity colors
+    document.querySelectorAll('.time-slot[data-activity]').forEach(slot => {
+        const id = slot.dataset.activity;
+        const color = slot.style.borderLeftColor;
+        if (color) {
+            colors.activities[id] = color;
+        }
+    });
+    
+    // Save legend colors
+    document.querySelectorAll('.legend-item').forEach(item => {
+        const typeClass = item.className.split(' ').find(cls => cls !== 'legend-item');
+        const color = item.style.background;
+        if (color && typeClass) {
+            colors.legend[typeClass] = color;
+        }
+    });
+    
+    return colors;
+}
+
+function loadColorData(colors) {
+    // Load individual activity colors
+    if (colors.activities) {
+        Object.keys(colors.activities).forEach(activityId => {
+            const slot = document.querySelector(`[data-activity="${activityId}"]`);
+            if (slot) {
+                slot.style.borderLeftColor = colors.activities[activityId];
+                slot.style.borderLeftWidth = '6px';
+                slot.style.borderLeftStyle = 'solid';
+            }
+        });
+    }
+    
+    // Load legend colors
+    if (colors.legend) {
+        Object.keys(colors.legend).forEach(typeClass => {
+            const legendItem = document.querySelector(`.legend-item.${typeClass}`);
+            if (legendItem) {
+                legendItem.style.background = colors.legend[typeClass];
+            }
+            
+            // Apply to all activities of this type
+            document.querySelectorAll(`.time-slot.${typeClass}`).forEach(slot => {
+                if (!slot.dataset.activity || !colors.activities[slot.dataset.activity]) {
+                    slot.style.borderLeftColor = colors.legend[typeClass];
+                    slot.style.borderLeftWidth = '4px';
+                    slot.style.borderLeftStyle = 'solid';
+                }
+            });
+        });
+    }
+}
+
+function saveActivityColor(activityId, color) {
+    const data = JSON.parse(localStorage.getItem('emea-fto-offsite-data') || '{}');
+    if (!data.colors) data.colors = { activities: {}, legend: {} };
+    data.colors.activities[activityId] = color;
+    localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
+}
+
+function removeActivityColor(activityId) {
+    const data = JSON.parse(localStorage.getItem('emea-fto-offsite-data') || '{}');
+    if (data.colors && data.colors.activities) {
+        delete data.colors.activities[activityId];
+        localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
+    }
+}
+
+function saveLegendColor(typeClass, color) {
+    const data = JSON.parse(localStorage.getItem('emea-fto-offsite-data') || '{}');
+    if (!data.colors) data.colors = { activities: {}, legend: {} };
+    data.colors.legend[typeClass] = color;
+    localStorage.setItem('emea-fto-offsite-data', JSON.stringify(data));
+}
+
+// Utility functions
+function downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function escapeCsv(text) {
+    if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+        return '"' + text.replace(/"/g, '""') + '"';
+    }
+    return text;
+}
+
+// Make functions globally available
+window.deleteParticipant = deleteParticipant;
+window.applyColor = applyColor;
+window.resetActivityColor = resetActivityColor;
+window.closeColorModal = closeColorModal;
+window.applyLegendColor = applyLegendColor;
+window.closeAddActivityModal = closeAddActivityModal;
+window.selectDay = selectDay;
+
+console.log('All functionality initialized successfully!');

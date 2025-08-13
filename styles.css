@@ -369,7 +369,345 @@ body {
     outline-offset: 1px;
 }
 
-/* Activity Type Colors */
+/* Enhanced functionality styles */
+
+/* Edit mode active styles */
+.edit-mode-active {
+    border: 2px dashed var(--aws-orange) !important;
+    background: rgba(255, 153, 0, 0.05) !important;
+}
+
+.editable-active {
+    cursor: text !important;
+    padding: 4px !important;
+    border-radius: 4px !important;
+    transition: all 0.3s ease !important;
+}
+
+.editable-active:hover {
+    background: rgba(255, 153, 0, 0.1) !important;
+    outline: 1px dashed var(--aws-orange) !important;
+}
+
+.editable-active:focus {
+    background: rgba(75, 156, 211, 0.1) !important;
+    outline: 2px solid var(--aws-light-blue) !important;
+}
+
+/* Color picker buttons in activities */
+.color-picker-btn-inline {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--aws-orange);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-picker-btn-inline:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Legend color buttons */
+.legend-color-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+}
+
+.legend-color-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+/* Add activity buttons for each day */
+.add-activity-day-btn {
+    background: var(--aws-light-blue);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.add-activity-day-btn:hover {
+    background: #3a8bc2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Drag and drop styles */
+.time-slot[draggable="true"] {
+    cursor: move;
+}
+
+.time-slot[draggable="true"]:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.time-slot.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+/* Color modal */
+.color-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.color-modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.color-modal h3 {
+    margin-bottom: 1.5rem;
+    color: var(--aws-dark-blue);
+    text-align: center;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.color-option {
+    width: 50px;
+    height: 50px;
+    border: 3px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.color-option:hover {
+    border-color: var(--aws-dark-blue);
+    transform: scale(1.1);
+}
+
+/* Add activity modal */
+.add-activity-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-content h3 {
+    margin-bottom: 1.5rem;
+    color: var(--aws-dark-blue);
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--aws-dark-blue);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--aws-light-blue);
+}
+
+.day-selection {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.day-btn {
+    background: var(--aws-light-blue);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.day-btn:hover {
+    background: #3a8bc2;
+    transform: translateY(-2px);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn-primary {
+    background: var(--aws-orange);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #e68900;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+/* Messages */
+.message {
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .color-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .day-selection {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .add-activity-day-btn {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
 .time-slot.meeting {
     border-left: 4px solid var(--meeting-color);
 }
