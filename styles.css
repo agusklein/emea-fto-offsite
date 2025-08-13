@@ -689,31 +689,14 @@ body {
     }
 }
 
-/* Participant table drag and drop */
-#participantsTable tbody tr[draggable="true"] {
-    cursor: move;
-    transition: all 0.3s ease;
+/* Participant table enhancements */
+.participants-table {
+    position: relative;
 }
 
-#participantsTable tbody tr[draggable="true"]:hover {
-    background: rgba(255, 153, 0, 0.05);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#participantsTable tbody tr.dragging {
-    opacity: 0.5;
-    transform: scale(0.98);
-}
-
-/* Column reordering */
-.draggable-column {
-    cursor: move !important;
-    background: rgba(255, 153, 0, 0.1) !important;
-    border: 2px dashed var(--aws-orange) !important;
-}
-
-.draggable-column:hover {
-    background: rgba(255, 153, 0, 0.2) !important;
+.participants-table th {
+    position: relative;
+    user-select: none;
 }
 
 /* Add column modal */
@@ -728,69 +711,6 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-}
-
-/* Enhanced table controls */
-.table-controls {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-}
-
-.table-controls .control-btn {
-    background: var(--aws-orange);
-    color: white;
-    border: none;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-}
-
-.table-controls .control-btn:hover {
-    background: #e68900;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Participant table enhancements */
-.participants-table {
-    position: relative;
-}
-
-.participants-table th {
-    position: relative;
-    user-select: none;
-}
-
-.participants-table th[draggable="true"]::after {
-    content: "⋮⋮";
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--aws-orange);
-    font-weight: bold;
-    opacity: 0.7;
-}
-
-.participants-table tbody tr[draggable="true"]::before {
-    content: "⋮⋮";
-    position: absolute;
-    left: -20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--aws-orange);
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.participants-table tbody tr[draggable="true"]:hover::before {
-    opacity: 0.7;
 }
 
 /* Responsive improvements for table controls */
@@ -1030,6 +950,7 @@ body {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
+    table-layout: fixed; /* Ensure consistent column widths */
 }
 
 .participants-table th {
@@ -1041,12 +962,27 @@ body {
     position: sticky;
     top: 0;
     z-index: 10;
+    vertical-align: middle;
 }
+
+/* Define column widths */
+.participants-table th:nth-child(1) { width: 15%; } /* Participant */
+.participants-table th:nth-child(2) { width: 20%; } /* Dietary Restrictions */
+.participants-table th:nth-child(3) { width: 20%; } /* Arrival Time */
+.participants-table th:nth-child(4) { width: 20%; } /* Departure Time */
+.participants-table th:nth-child(5) { width: 15%; } /* Hotel */
+.participants-table th:nth-child(6) { width: 10%; text-align: center; } /* Actions */
 
 .participants-table td {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #eee;
     transition: background-color 0.3s ease;
+    vertical-align: top;
+    word-wrap: break-word;
+}
+
+.participants-table td:last-child {
+    text-align: center;
 }
 
 .participants-table tr:hover {
