@@ -689,7 +689,121 @@ body {
     }
 }
 
-/* Responsive improvements */
+/* Participant table drag and drop */
+#participantsTable tbody tr[draggable="true"] {
+    cursor: move;
+    transition: all 0.3s ease;
+}
+
+#participantsTable tbody tr[draggable="true"]:hover {
+    background: rgba(255, 153, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#participantsTable tbody tr.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+}
+
+/* Column reordering */
+.draggable-column {
+    cursor: move !important;
+    background: rgba(255, 153, 0, 0.1) !important;
+    border: 2px dashed var(--aws-orange) !important;
+}
+
+.draggable-column:hover {
+    background: rgba(255, 153, 0, 0.2) !important;
+}
+
+/* Add column modal */
+.add-column-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Enhanced table controls */
+.table-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.table-controls .control-btn {
+    background: var(--aws-orange);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.table-controls .control-btn:hover {
+    background: #e68900;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Participant table enhancements */
+.participants-table {
+    position: relative;
+}
+
+.participants-table th {
+    position: relative;
+    user-select: none;
+}
+
+.participants-table th[draggable="true"]::after {
+    content: "⋮⋮";
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--aws-orange);
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+.participants-table tbody tr[draggable="true"]::before {
+    content: "⋮⋮";
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--aws-orange);
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.participants-table tbody tr[draggable="true"]:hover::before {
+    opacity: 0.7;
+}
+
+/* Responsive improvements for table controls */
+@media (max-width: 768px) {
+    .table-controls {
+        justify-content: center;
+    }
+    
+    .table-controls .control-btn {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
 @media (max-width: 768px) {
     .color-grid {
         grid-template-columns: repeat(3, 1fr);
