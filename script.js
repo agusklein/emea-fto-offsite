@@ -8,6 +8,15 @@ class OffsiteManager {
         this.editMode = false;
         this.colorMode = false;
         this.autoSaveInterval = null;
+        this.activityTypes = {
+            meeting: { name: '🏢 Meetings', color: '#4B9CD3' },
+            workshop: { name: '🛠️ Workshops', color: '#FF9900' },
+            demo: { name: '💻 Demos', color: '#8C4FFF' },
+            social: { name: '🍽️ Social', color: '#FF6B6B' },
+            break: { name: '☕ Breaks', color: '#4ECDC4' },
+            free: { name: '🆓 Free Time', color: '#95E1D3' },
+            arrival: { name: '✈️ Arrival', color: '#FFA726' }
+        };
         
         this.init();
     }
@@ -17,6 +26,7 @@ class OffsiteManager {
         this.bindEvents();
         this.startAutoSave();
         this.updateLastModified();
+        this.updateActivityTypeStyles();
         
         // Add fade-in animation to sections
         this.animateElements();
@@ -33,6 +43,18 @@ class OffsiteManager {
         document.getElementById('edit-mode-btn')?.addEventListener('click', () => this.toggleEditMode());
         document.getElementById('export-agenda-btn')?.addEventListener('click', () => this.exportAgenda());
         document.getElementById('color-mode-btn')?.addEventListener('click', () => this.toggleColorMode());
+
+        // New functionality
+        document.getElementById('add-activity-type-btn')?.addEventListener('click', () => this.addActivityType());
+        document.getElementById('customize-legend-btn')?.addEventListener('click', () => this.customizeLegend());
+
+        // Color picker buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('color-picker-btn')) {
+                const activityType = e.target.dataset.type;
+                this.openColorPicker(activityType);
+            }
+        });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
@@ -58,7 +80,8 @@ class OffsiteManager {
                 // Allow Enter in paragraph elements, but blur for titles
                 if (e.target.tagName === 'H1' || e.target.tagName === 'H2' || 
                     e.target.tagName === 'H3' || e.target.tagName === 'H4' || 
-                    e.target.classList.contains('day-subtitle')) {
+                    e.target.classList.contains('day-subtitle') ||
+                    e.target.tagName === 'TH') {
                     e.preventDefault();
                     e.target.blur();
                 }
@@ -304,6 +327,151 @@ class OffsiteManager {
         this.showMessage(`Color category "${category}" ready. Click on an activity to apply.`, 'success');
     }
 
+    addActivityType() {
+        const name = prompt('Enter new activity type name (with emoji):');
+        if (!name) return;
+
+        const typeId = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (this.activityTypes[typeId]) {
+            this.showMessage('Activity type already exists', 'error');
+            return;
+        }
+
+        // Add new activity type with default color
+        this.activityTypes[typeId] = {
+            name: name,
+            color: '#6C757D' // Default gray color
+        };
+
+        this.updateLegendDisplay();
+        this.updateActivityTypeStyles();
+        this.saveData();
+        this.showMessage('New activity type added', 'success');
+    }
+
+    customizeLegend() {
+        this.showMessage('Click on the 🎨 buttons next to each activity type to change colors, or edit the text directly!', 'success');
+    }
+
+    openColorPicker(activityType) {
+        const modal = this.createColorPickerModal(activityType);
+        document.body.appendChild(modal);
+    }
+
+    createColorPickerModal(activityType) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        const modal = document.createElement('div');
+        modal.className = 'color-picker-modal';
+        
+        const currentType = this.activityTypes[activityType];
+        
+        modal.innerHTML = `
+            <h3>Choose Color for ${currentType.name}</h3>
+            <div class="color-options">
+                <div class="color-option" style="background: #4B9CD3" data-color="#4B9CD3"></div>
+                <div class="color-option" style="background: #FF9900" data-color="#FF9900"></div>
+                <div class="color-option" style="background: #8C4FFF" data-color="#8C4FFF"></div>
+                <div class="color-option" style="background: #FF6B6B" data-color="#FF6B6B"></div>
+                <div class="color-option" style="background: #4ECDC4" data-color="#4ECDC4"></div>
+                <div class="color-option" style="background: #95E1D3" data-color="#95E1D3"></div>
+                <div class="color-option" style="background: #FFA726" data-color="#FFA726"></div>
+                <div class="color-option" style="background: #E74C3C" data-color="#E74C3C"></div>
+                <div class="color-option" style="background: #9B59B6" data-color="#9B59B6"></div>
+                <div class="color-option" style="background: #2ECC71" data-color="#2ECC71"></div>
+                <div class="color-option" style="background: #F39C12" data-color="#F39C12"></div>
+                <div class="color-option" style="background: #34495E" data-color="#34495E"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                <button class="modal-btn primary" id="apply-color-btn">Apply</button>
+            </div>
+        `;
+
+        let selectedColor = currentType.color;
+
+        // Handle color selection
+        modal.querySelectorAll('.color-option').forEach(option => {
+            if (option.dataset.color === currentType.color) {
+                option.classList.add('selected');
+            }
+            
+            option.addEventListener('click', () => {
+                modal.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedColor = option.dataset.color;
+            });
+        });
+
+        // Handle apply button
+        modal.querySelector('#apply-color-btn').addEventListener('click', () => {
+            this.updateActivityTypeColor(activityType, selectedColor);
+            overlay.remove();
+        });
+
+        // Handle overlay click to close
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+
+        overlay.appendChild(modal);
+        return overlay;
+    }
+
+    updateActivityTypeColor(activityType, newColor) {
+        this.activityTypes[activityType].color = newColor;
+        this.updateLegendDisplay();
+        this.updateActivityTypeStyles();
+        this.saveData();
+        this.showMessage(`Color updated for ${this.activityTypes[activityType].name}`, 'success');
+    }
+
+    updateLegendDisplay() {
+        const legendItems = document.getElementById('legendItems');
+        if (!legendItems) return;
+
+        legendItems.innerHTML = '';
+        
+        Object.keys(this.activityTypes).forEach(typeId => {
+            const type = this.activityTypes[typeId];
+            const item = document.createElement('span');
+            item.className = `legend-item ${typeId}`;
+            item.dataset.type = typeId;
+            item.style.background = type.color;
+            
+            item.innerHTML = `
+                <span class="legend-text" contenteditable="true">${type.name}</span>
+                <button class="color-picker-btn" data-type="${typeId}">🎨</button>
+            `;
+            
+            legendItems.appendChild(item);
+        });
+    }
+
+    updateActivityTypeStyles() {
+        // Create or update dynamic styles for activity types
+        let styleElement = document.getElementById('dynamic-activity-styles');
+        if (!styleElement) {
+            styleElement = document.createElement('style');
+            styleElement.id = 'dynamic-activity-styles';
+            document.head.appendChild(styleElement);
+        }
+
+        let css = '';
+        Object.keys(this.activityTypes).forEach(typeId => {
+            const color = this.activityTypes[typeId].color;
+            css += `
+                .legend-item.${typeId} { background: ${color} !important; }
+                .time-slot.${typeId} { border-left: 4px solid ${color} !important; }
+            `;
+        });
+
+        styleElement.textContent = css;
+    }
+
     exportParticipants() {
         const table = document.getElementById('participantsTable');
         if (!table) return;
@@ -362,6 +530,7 @@ class OffsiteManager {
         const data = {
             participants: this.getParticipantsData(),
             editableContent: this.getAllEditableContent(),
+            activityTypes: this.activityTypes,
             lastModified: new Date().toISOString(),
             version: '1.0'
         };
@@ -394,6 +563,9 @@ class OffsiteManager {
             try {
                 const data = JSON.parse(saved);
                 this.participants = data.participants || [];
+                if (data.activityTypes) {
+                    this.activityTypes = { ...this.activityTypes, ...data.activityTypes };
+                }
                 // Load participants back to table if needed
             } catch (e) {
                 console.error('Error loading saved data:', e);

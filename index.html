@@ -52,15 +52,40 @@
             
             <!-- Legend -->
             <div class="legend">
-                <h4 contenteditable="true">Activity Types:</h4>
-                <div class="legend-items">
-                    <span class="legend-item meeting">🏢 Meetings</span>
-                    <span class="legend-item workshop">🛠️ Workshops</span>
-                    <span class="legend-item demo">💻 Demos</span>
-                    <span class="legend-item social">🍽️ Social</span>
-                    <span class="legend-item break">☕ Breaks</span>
-                    <span class="legend-item free">🆓 Free Time</span>
-                    <span class="legend-item arrival">✈️ Arrival</span>
+                <div class="legend-header">
+                    <h4 contenteditable="true">Activity Types:</h4>
+                    <button id="customize-legend-btn" class="control-btn small">🎨 Customize Types</button>
+                    <button id="add-activity-type-btn" class="control-btn small">➕ Add Type</button>
+                </div>
+                <div class="legend-items" id="legendItems">
+                    <span class="legend-item meeting" data-type="meeting">
+                        <span class="legend-text" contenteditable="true">🏢 Meetings</span>
+                        <button class="color-picker-btn" data-type="meeting">🎨</button>
+                    </span>
+                    <span class="legend-item workshop" data-type="workshop">
+                        <span class="legend-text" contenteditable="true">🛠️ Workshops</span>
+                        <button class="color-picker-btn" data-type="workshop">🎨</button>
+                    </span>
+                    <span class="legend-item demo" data-type="demo">
+                        <span class="legend-text" contenteditable="true">💻 Demos</span>
+                        <button class="color-picker-btn" data-type="demo">🎨</button>
+                    </span>
+                    <span class="legend-item social" data-type="social">
+                        <span class="legend-text" contenteditable="true">🍽️ Social</span>
+                        <button class="color-picker-btn" data-type="social">🎨</button>
+                    </span>
+                    <span class="legend-item break" data-type="break">
+                        <span class="legend-text" contenteditable="true">☕ Breaks</span>
+                        <button class="color-picker-btn" data-type="break">🎨</button>
+                    </span>
+                    <span class="legend-item free" data-type="free">
+                        <span class="legend-text" contenteditable="true">🆓 Free Time</span>
+                        <button class="color-picker-btn" data-type="free">🎨</button>
+                    </span>
+                    <span class="legend-item arrival" data-type="arrival">
+                        <span class="legend-text" contenteditable="true">✈️ Arrival</span>
+                        <button class="color-picker-btn" data-type="arrival">🎨</button>
+                    </span>
                 </div>
             </div>
             
@@ -254,11 +279,11 @@
                 <table class="participants-table" id="participantsTable">
                     <thead>
                         <tr>
-                            <th>Participant</th>
-                            <th>Dietary Restrictions</th>
-                            <th>Arrival Time at BCN</th>
-                            <th>Departure Time at BCN</th>
-                            <th>Hotel</th>
+                            <th contenteditable="true">Participant</th>
+                            <th contenteditable="true">Dietary Restrictions</th>
+                            <th contenteditable="true">Arrival Time at BCN</th>
+                            <th contenteditable="true">Departure Time at BCN</th>
+                            <th contenteditable="true">Hotel</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
