@@ -58,8 +58,10 @@ class OffsiteManager {
                 this.openColorPicker(activityType);
             }
             if (e.target.classList.contains('activity-color-btn')) {
+                e.preventDefault();
                 e.stopPropagation(); // Prevent time-slot click
                 const activityId = e.target.dataset.activity;
+                console.log('Activity color button clicked:', activityId); // Debug log
                 this.openActivityColorPicker(activityId, e.target);
             }
         });
@@ -460,10 +462,21 @@ class OffsiteManager {
     }
 
     openActivityColorPicker(activityId, buttonElement) {
+        console.log('Opening color picker for activity:', activityId); // Debug log
+        
         const timeSlot = buttonElement.closest('.time-slot');
-        const activityTitle = timeSlot.querySelector('h4').textContent;
+        if (!timeSlot) {
+            console.error('Could not find time-slot element');
+            return;
+        }
+        
+        const activityTitle = timeSlot.querySelector('h4')?.textContent || 'Unknown Activity';
+        console.log('Activity title:', activityTitle); // Debug log
+        
         const modal = this.createActivityColorPickerModal(activityId, activityTitle, timeSlot);
         document.body.appendChild(modal);
+        
+        this.showMessage(`Opening color picker for "${activityTitle}"`, 'success');
     }
 
     createActivityColorPickerModal(activityId, activityTitle, timeSlot) {
