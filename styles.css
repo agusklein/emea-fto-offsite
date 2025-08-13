@@ -713,7 +713,50 @@ body {
     z-index: 1000;
 }
 
-/* Responsive improvements for table controls */
+.time[contenteditable="true"] {
+    cursor: text;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
+}
+
+.time[contenteditable="true"]:hover {
+    background: rgba(255, 153, 0, 0.1);
+    border-color: var(--aws-orange);
+    outline: 1px dashed var(--aws-orange);
+}
+
+.time[contenteditable="true"]:focus {
+    background: rgba(75, 156, 211, 0.1);
+    border-color: var(--aws-light-blue);
+    outline: 2px solid var(--aws-light-blue);
+    outline-offset: 1px;
+}
+
+/* Enhanced editable styling for all agenda elements */
+.time-slot h4[contenteditable="true"],
+.time-slot p[contenteditable="true"] {
+    cursor: text;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    min-height: 1.2em;
+}
+
+.time-slot h4[contenteditable="true"]:hover,
+.time-slot p[contenteditable="true"]:hover {
+    background: rgba(255, 153, 0, 0.1);
+    outline: 1px dashed var(--aws-orange);
+}
+
+.time-slot h4[contenteditable="true"]:focus,
+.time-slot p[contenteditable="true"]:focus {
+    background: rgba(75, 156, 211, 0.1);
+    outline: 2px solid var(--aws-light-blue);
+    outline-offset: 1px;
+}
 @media (max-width: 768px) {
     .table-controls {
         justify-content: center;

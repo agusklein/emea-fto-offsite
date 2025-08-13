@@ -932,6 +932,11 @@ function loadSavedData() {
                 loadColorData(data.colors);
             }
             
+            // Load agenda data
+            if (data.agenda) {
+                loadAgendaData(data.agenda);
+            }
+            
             // Load editable content
             if (data.editableContent) {
                 loadEditableContent(data.editableContent);
@@ -957,6 +962,56 @@ function loadSavedData() {
     } else {
         console.log('No saved data found');
     }
+}
+
+function loadAgendaData(agendaData) {
+    console.log('Loading agenda data:', agendaData);
+    
+    document.querySelectorAll('.day-column').forEach((dayCol, index) => {
+        const dayTitle = dayCol.querySelector('h3')?.textContent || `Day ${index + 1}`;
+        const savedDay = agendaData[dayTitle];
+        
+        if (savedDay) {
+            // Load day subtitle
+            const subtitleElement = dayCol.querySelector('.day-subtitle');
+            if (subtitleElement && savedDay.subtitle) {
+                subtitleElement.textContent = savedDay.subtitle;
+            }
+            
+            // Load activities
+            const timeSlots = dayCol.querySelectorAll('.time-slot');
+            if (savedDay.activities) {
+                savedDay.activities.forEach((savedActivity, activityIndex) => {
+                    const timeSlot = timeSlots[activityIndex];
+                    if (timeSlot) {
+                        // Load time
+                        const timeElement = timeSlot.querySelector('.time');
+                        if (timeElement && savedActivity.time) {
+                            timeElement.textContent = savedActivity.time;
+                        }
+                        
+                        // Load title
+                        const titleElement = timeSlot.querySelector('h4');
+                        if (titleElement && savedActivity.title) {
+                            titleElement.textContent = savedActivity.title;
+                        }
+                        
+                        // Load descriptions
+                        const descriptionElements = timeSlot.querySelectorAll('p');
+                        if (savedActivity.descriptions && savedActivity.descriptions.length > 0) {
+                            savedActivity.descriptions.forEach((desc, descIndex) => {
+                                if (descriptionElements[descIndex] && desc) {
+                                    descriptionElements[descIndex].textContent = desc;
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    });
+    
+    console.log('Agenda data loaded successfully');
 }
 
 function loadEditableContent(editableContent) {
@@ -1009,21 +1064,32 @@ function getAgendaData() {
     const agenda = {};
     document.querySelectorAll('.day-column').forEach((dayCol, index) => {
         const dayTitle = dayCol.querySelector('h3')?.textContent || `Day ${index + 1}`;
+        const daySubtitle = dayCol.querySelector('.day-subtitle')?.textContent || '';
         const activities = [];
         
         dayCol.querySelectorAll('.time-slot').forEach(slot => {
-            activities.push({
-                time: slot.querySelector('.time')?.textContent || '',
-                title: slot.querySelector('h4')?.textContent || '',
-                description: slot.querySelector('p')?.textContent || '',
+            const timeElement = slot.querySelector('.time');
+            const titleElement = slot.querySelector('h4');
+            const descriptionElements = slot.querySelectorAll('p');
+            
+            const activity = {
+                time: timeElement?.textContent || '',
+                title: titleElement?.textContent || '',
+                descriptions: Array.from(descriptionElements).map(p => p.textContent || ''),
                 type: slot.className.split(' ').find(cls => cls !== 'time-slot') || 'meeting',
                 id: slot.dataset.activity || generateActivityId()
-            });
+            };
+            
+            activities.push(activity);
         });
         
-        agenda[dayTitle] = activities;
+        agenda[dayTitle] = {
+            subtitle: daySubtitle,
+            activities: activities
+        };
     });
     
+    console.log('Agenda data captured:', agenda);
     return agenda;
 }
 
