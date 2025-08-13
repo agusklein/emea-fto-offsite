@@ -1,182 +1,200 @@
-// SIMPLEST BULLETPROOF SAVE SYSTEM - GUARANTEED TO WORK
-console.log('🚀 Loading SIMPLE save system...');
+// MOST BASIC SAVE SYSTEM - WILL WORK
+console.log('🚀 Starting BASIC save system...');
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ DOM loaded');
+// Wait for page to load
+window.addEventListener('load', function() {
+    console.log('✅ Page loaded completely');
     
-    // Load saved data first
-    loadData();
+    // Load any saved data first
+    loadEverything();
     
-    // Initialize save system
-    initSaveSystem();
+    // Set up saving
+    setupSaving();
     
-    // Initialize buttons
-    initButtons();
+    // Test immediately
+    setTimeout(testNow, 1000);
 });
 
-// SIMPLE SAVE SYSTEM
-function initSaveSystem() {
-    console.log('🔧 Initializing SIMPLE save system...');
+function setupSaving() {
+    console.log('🔧 Setting up saving...');
     
-    // Save on ANY change
-    document.addEventListener('input', function(e) {
+    // Save on ANY input change
+    document.body.addEventListener('input', function(e) {
         if (e.target.contentEditable === 'true') {
-            console.log('📝 CHANGE:', e.target.textContent);
-            saveData();
+            console.log('📝 INPUT DETECTED:', e.target.textContent.substring(0, 50));
+            saveNow();
         }
     });
     
-    // Save when clicking away
-    document.addEventListener('blur', function(e) {
+    // Save when element loses focus
+    document.body.addEventListener('focusout', function(e) {
         if (e.target.contentEditable === 'true') {
-            console.log('👆 BLUR SAVE:', e.target.textContent);
-            saveData();
-        }
-    }, true);
-    
-    // Save on Enter
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.target.contentEditable === 'true') {
-            console.log('⏎ ENTER SAVE');
-            e.preventDefault();
-            e.target.blur();
+            console.log('👆 FOCUS OUT:', e.target.textContent.substring(0, 50));
+            saveNow();
         }
     });
     
-    // Save every 3 seconds
-    setInterval(saveData, 3000);
+    // Save every 2 seconds automatically
+    setInterval(function() {
+        console.log('⏰ Auto-save...');
+        saveNow();
+    }, 2000);
     
-    // Save before leaving
-    window.addEventListener('beforeunload', saveData);
-    
-    console.log('✅ Save system ready');
+    console.log('✅ Saving setup complete');
 }
 
-// SIMPLE SAVE FUNCTION
-function saveData() {
-    console.log('💾 SAVING...');
+function saveNow() {
+    console.log('💾 SAVING NOW...');
     
     try {
-        const data = {};
-        let count = 0;
+        const allData = [];
         
-        // Save ALL editable content with simple numbering
-        document.querySelectorAll('[contenteditable="true"]').forEach((element, index) => {
-            data[`item_${index}`] = {
-                text: element.textContent || '',
-                tag: element.tagName,
-                classes: element.className,
-                parent: element.parentElement ? element.parentElement.tagName : ''
-            };
-            count++;
+        // Get ALL editable elements
+        const editables = document.querySelectorAll('[contenteditable="true"]');
+        console.log(`Found ${editables.length} editable elements`);
+        
+        editables.forEach(function(element, index) {
+            allData.push({
+                index: index,
+                text: element.textContent || element.innerText || '',
+                tag: element.tagName
+            });
         });
         
         // Save to localStorage
-        localStorage.setItem('simple-save', JSON.stringify({
-            timestamp: new Date().toISOString(),
-            data: data,
-            count: count
-        }));
+        const saveObject = {
+            saved: new Date().toISOString(),
+            elements: allData
+        };
         
-        console.log(`✅ SAVED ${count} items`);
-        showMsg(`💾 Saved ${count} items`);
+        localStorage.setItem('website-data', JSON.stringify(saveObject));
+        
+        console.log(`✅ SAVED ${allData.length} elements successfully`);
+        showMessage(`💾 Saved ${allData.length} items`);
+        
+        return true;
         
     } catch (error) {
-        console.error('❌ SAVE ERROR:', error);
-        showMsg('❌ Save failed');
+        console.error('❌ SAVE FAILED:', error);
+        showMessage('❌ Save failed');
+        return false;
     }
 }
 
-// SIMPLE LOAD FUNCTION
-function loadData() {
+function loadEverything() {
     console.log('📂 LOADING...');
     
-    const saved = localStorage.getItem('simple-save');
+    const saved = localStorage.getItem('website-data');
     if (!saved) {
-        console.log('ℹ️ No saved data');
+        console.log('ℹ️ No saved data found');
         return;
     }
     
     try {
-        const saveData = JSON.parse(saved);
-        console.log('📂 Found data:', saveData.timestamp);
+        const data = JSON.parse(saved);
+        console.log('📂 Found saved data from:', data.saved);
         
+        const editables = document.querySelectorAll('[contenteditable="true"]');
         let restored = 0;
-        const allElements = document.querySelectorAll('[contenteditable="true"]');
         
-        // Restore by matching position
-        allElements.forEach((element, index) => {
-            const key = `item_${index}`;
-            if (saveData.data[key]) {
-                element.textContent = saveData.data[key].text;
+        editables.forEach(function(element, index) {
+            if (data.elements[index]) {
+                element.textContent = data.elements[index].text;
                 restored++;
-                console.log(`📂 Restored ${index}: "${saveData.data[key].text}"`);
             }
         });
         
-        console.log(`✅ LOADED ${restored} items`);
-        showMsg(`📂 Loaded ${restored} items`);
+        console.log(`✅ RESTORED ${restored} elements`);
+        showMessage(`📂 Loaded ${restored} items`);
         
     } catch (error) {
-        console.error('❌ LOAD ERROR:', error);
-        showMsg('❌ Load failed');
+        console.error('❌ LOAD FAILED:', error);
+        showMessage('❌ Load failed');
     }
 }
 
-// SIMPLE MESSAGE FUNCTION
-function showMsg(text) {
+function showMessage(text) {
     // Remove old messages
-    document.querySelectorAll('.msg').forEach(m => m.remove());
+    const oldMessages = document.querySelectorAll('.status-message');
+    oldMessages.forEach(function(msg) {
+        msg.remove();
+    });
     
-    const msg = document.createElement('div');
-    msg.className = 'msg';
-    msg.textContent = text;
-    msg.style.cssText = `
+    // Create new message
+    const message = document.createElement('div');
+    message.className = 'status-message';
+    message.textContent = text;
+    message.style.cssText = `
         position: fixed;
-        top: 10px;
-        right: 10px;
+        top: 20px;
+        right: 20px;
         background: #28a745;
         color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-        z-index: 9999;
-        font-size: 14px;
+        padding: 10px 15px;
+        border-radius: 5px;
+        z-index: 10000;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     `;
     
-    document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 2000);
+    document.body.appendChild(message);
+    
+    // Remove after 3 seconds
+    setTimeout(function() {
+        message.remove();
+    }, 3000);
 }
 
-// SIMPLE BUTTON INITIALIZATION
-function initButtons() {
-    console.log('🔘 Init buttons...');
+function testNow() {
+    console.log('🧪 TESTING SAVE SYSTEM...');
     
+    const editables = document.querySelectorAll('[contenteditable="true"]');
+    console.log(`🧪 Found ${editables.length} editable elements on page`);
+    
+    // Test save
+    const saveResult = saveNow();
+    
+    if (saveResult) {
+        // Check if data was actually saved
+        const saved = localStorage.getItem('website-data');
+        if (saved) {
+            const data = JSON.parse(saved);
+            console.log(`✅ TEST PASSED - ${data.elements.length} elements saved to localStorage`);
+            showMessage('✅ Save system working!');
+        } else {
+            console.log('❌ TEST FAILED - No data in localStorage');
+            showMessage('❌ Save system failed!');
+        }
+    } else {
+        console.log('❌ TEST FAILED - Save function returned false');
+        showMessage('❌ Save system failed!');
+    }
+}
+
+// Simple button handlers
+document.addEventListener('click', function(e) {
     // Manual save button
-    const saveBtn = document.getElementById('save-data-btn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            saveData();
-            showMsg('💾 Manual save done!');
-        });
+    if (e.target.id === 'save-data-btn') {
+        saveNow();
+        showMessage('💾 Manual save complete!');
     }
     
     // Add participant button
-    const addBtn = document.getElementById('add-participant-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', addParticipant);
+    if (e.target.id === 'add-participant-btn') {
+        addParticipant();
     }
-    
-    console.log('✅ Buttons ready');
-}
+});
 
-// SIMPLE ADD PARTICIPANT
 function addParticipant() {
     const tbody = document.getElementById('participantsBody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.log('❌ Could not find participants table');
+        return;
+    }
 
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td contenteditable="true">New Person</td>
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td contenteditable="true">New Participant</td>
         <td contenteditable="true">None</td>
         <td contenteditable="true">-</td>
         <td contenteditable="true">-</td>
@@ -184,44 +202,25 @@ function addParticipant() {
         <td><button onclick="deleteParticipant(this)">🗑️</button></td>
     `;
     
-    tbody.appendChild(row);
-    saveData();
-    showMsg('👤 Added participant');
+    tbody.appendChild(newRow);
+    console.log('👤 Added new participant');
+    saveNow();
+    showMessage('👤 Participant added!');
 }
 
-// SIMPLE DELETE PARTICIPANT
-function deleteParticipant(btn) {
+function deleteParticipant(button) {
     if (confirm('Delete this participant?')) {
-        btn.closest('tr').remove();
-        saveData();
-        showMsg('👤 Deleted participant');
+        button.closest('tr').remove();
+        console.log('👤 Deleted participant');
+        saveNow();
+        showMessage('👤 Participant deleted!');
     }
 }
 
-// TEST FUNCTION
-function testSave() {
-    console.log('🧪 TESTING...');
-    
-    const editables = document.querySelectorAll('[contenteditable="true"]');
-    console.log(`🧪 Found ${editables.length} editable elements`);
-    
-    saveData();
-    
-    const saved = localStorage.getItem('simple-save');
-    if (saved) {
-        const data = JSON.parse(saved);
-        console.log(`✅ Test passed - ${data.count} items saved`);
-        return true;
-    } else {
-        console.log('❌ Test failed');
-        return false;
-    }
-}
-
-// GLOBAL FUNCTIONS
+// Make functions available globally
+window.saveNow = saveNow;
+window.loadEverything = loadEverything;
+window.testNow = testNow;
 window.deleteParticipant = deleteParticipant;
-window.saveData = saveData;
-window.loadData = loadData;
-window.testSave = testSave;
 
-console.log('🎉 SIMPLE save system loaded!');
+console.log('🎉 BASIC save system ready!');
