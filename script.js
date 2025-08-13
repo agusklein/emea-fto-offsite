@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeColorPickers();
     initializeDragAndDrop();
     initializeAddActivityButtons();
-    initializeParticipantDragDrop();
     loadSavedData();
     
     // Auto-save every 30 seconds
@@ -55,11 +54,6 @@ function initializeButtons() {
     const addColumnBtn = document.getElementById('add-column-btn');
     if (addColumnBtn) {
         addColumnBtn.addEventListener('click', addColumn);
-    }
-    
-    const reorderColumnsBtn = document.getElementById('reorder-columns-btn');
-    if (reorderColumnsBtn) {
-        reorderColumnsBtn.addEventListener('click', enableColumnReordering);
     }
     
     const exportParticipantsBtn = document.getElementById('export-participants-btn');
@@ -595,27 +589,15 @@ function addParticipant() {
     if (!tbody) return;
 
     const newRow = document.createElement('tr');
-    newRow.draggable = true;
-    newRow.addEventListener('dragstart', handleParticipantDragStart);
-    newRow.addEventListener('dragover', handleParticipantDragOver);
-    newRow.addEventListener('drop', handleParticipantDrop);
-    newRow.addEventListener('dragend', handleParticipantDragEnd);
+    newRow.innerHTML = `
+        <td contenteditable="true">New Participant</td>
+        <td contenteditable="true">None</td>
+        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+        <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
+        <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
+    `;
     
-    // Get number of columns (excluding Actions column)
-    const headerCells = document.querySelectorAll('#participantsTable thead th');
-    const numColumns = headerCells.length - 1; // Exclude Actions column
-    
-    let rowHTML = '';
-    for (let i = 0; i < numColumns; i++) {
-        if (i === 0) {
-            rowHTML += '<td contenteditable="true">New Participant</td>';
-        } else {
-            rowHTML += '<td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>';
-        }
-    }
-    rowHTML += '<td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>';
-    
-    newRow.innerHTML = rowHTML;
     tbody.appendChild(newRow);
     
     // Focus on the first cell
@@ -629,7 +611,7 @@ function addParticipant() {
     showMessage('New participant added', 'success');
 }
 
-// Add new column functionality
+// Add new column functionality - CAREFUL VERSION
 function addColumn() {
     const modal = document.createElement('div');
     modal.className = 'add-column-modal';
@@ -662,7 +644,7 @@ function addColumn() {
         const columnName = document.getElementById('columnName').value;
         const defaultValue = document.getElementById('defaultValue').value || '-';
         
-        addNewColumn(columnName, defaultValue);
+        addNewColumnSafely(columnName, defaultValue);
         closeAddColumnModal();
     });
     
@@ -674,34 +656,31 @@ function addColumn() {
     });
 }
 
-function addNewColumn(columnName, defaultValue) {
+function addNewColumnSafely(columnName, defaultValue) {
     const table = document.getElementById('participantsTable');
     if (!table) return;
     
-    // Add header cell (before Actions column)
+    // Add header cell (before Actions column which is always last)
     const headerRow = table.querySelector('thead tr');
     const actionsHeader = headerRow.querySelector('th:last-child');
     const newHeader = document.createElement('th');
     newHeader.contentEditable = true;
     newHeader.textContent = columnName;
-    newHeader.draggable = true;
-    newHeader.addEventListener('dragstart', handleColumnDragStart);
-    newHeader.addEventListener('dragover', handleColumnDragOver);
-    newHeader.addEventListener('drop', handleColumnDrop);
-    newHeader.addEventListener('dragend', handleColumnDragEnd);
     
+    // Insert before the Actions column
     headerRow.insertBefore(newHeader, actionsHeader);
     
-    // Add cells to all existing rows
+    // Add cells to all existing rows (before Actions column)
     const bodyRows = table.querySelectorAll('tbody tr');
     bodyRows.forEach(row => {
-        const actionsCell = row.querySelector('td:last-child');
+        const actionsCell = row.querySelector('td:last-child'); // Actions column is always last
         const newCell = document.createElement('td');
         newCell.contentEditable = true;
         newCell.className = 'editable-field';
         newCell.setAttribute('placeholder', 'Click to add');
         newCell.textContent = defaultValue;
         
+        // Insert before the Actions column
         row.insertBefore(newCell, actionsCell);
     });
     
@@ -714,180 +693,6 @@ function closeAddColumnModal() {
     if (modal) {
         modal.remove();
     }
-}
-
-// Column reordering functionality
-let columnReorderMode = false;
-
-function enableColumnReordering() {
-    columnReorderMode = !columnReorderMode;
-    const btn = document.getElementById('reorder-columns-btn');
-    
-    if (columnReorderMode) {
-        btn.textContent = '✅ Exit Reorder';
-        btn.style.background = '#dc3545';
-        enableColumnDragging();
-        showMessage('Column reorder mode enabled. Drag column headers to reorder.', 'success');
-    } else {
-        btn.textContent = '🔄 Reorder Columns';
-        btn.style.background = '#FF9900';
-        disableColumnDragging();
-        showMessage('Column reorder mode disabled.', 'success');
-    }
-}
-
-function enableColumnDragging() {
-    const headers = document.querySelectorAll('#participantsTable thead th:not(:last-child)'); // Exclude Actions
-    headers.forEach(header => {
-        header.draggable = true;
-        header.classList.add('draggable-column');
-        header.addEventListener('dragstart', handleColumnDragStart);
-        header.addEventListener('dragover', handleColumnDragOver);
-        header.addEventListener('drop', handleColumnDrop);
-        header.addEventListener('dragend', handleColumnDragEnd);
-    });
-}
-
-function disableColumnDragging() {
-    const headers = document.querySelectorAll('#participantsTable thead th');
-    headers.forEach(header => {
-        header.draggable = false;
-        header.classList.remove('draggable-column');
-        header.removeEventListener('dragstart', handleColumnDragStart);
-        header.removeEventListener('dragover', handleColumnDragOver);
-        header.removeEventListener('drop', handleColumnDrop);
-        header.removeEventListener('dragend', handleColumnDragEnd);
-    });
-}
-
-// Column drag handlers
-let draggedColumn = null;
-let draggedColumnIndex = -1;
-
-function handleColumnDragStart(e) {
-    if (!columnReorderMode) return;
-    
-    draggedColumn = this;
-    draggedColumnIndex = Array.from(this.parentNode.children).indexOf(this);
-    this.style.opacity = '0.5';
-    e.dataTransfer.effectAllowed = 'move';
-}
-
-function handleColumnDragOver(e) {
-    if (!columnReorderMode) return;
-    if (e.preventDefault) {
-        e.preventDefault();
-    }
-    e.dataTransfer.dropEffect = 'move';
-    return false;
-}
-
-function handleColumnDrop(e) {
-    if (!columnReorderMode) return;
-    if (e.stopPropagation) {
-        e.stopPropagation();
-    }
-    
-    if (draggedColumn !== this) {
-        const targetIndex = Array.from(this.parentNode.children).indexOf(this);
-        moveColumn(draggedColumnIndex, targetIndex);
-        saveAllData();
-        showMessage('Column order updated!', 'success');
-    }
-    
-    return false;
-}
-
-function handleColumnDragEnd(e) {
-    if (!columnReorderMode) return;
-    this.style.opacity = '1';
-    draggedColumn = null;
-    draggedColumnIndex = -1;
-}
-
-function moveColumn(fromIndex, toIndex) {
-    const table = document.getElementById('participantsTable');
-    if (!table) return;
-    
-    // Move header
-    const headerRow = table.querySelector('thead tr');
-    const headers = Array.from(headerRow.children);
-    const headerToMove = headers[fromIndex];
-    
-    if (fromIndex < toIndex) {
-        headerRow.insertBefore(headerToMove, headers[toIndex + 1]);
-    } else {
-        headerRow.insertBefore(headerToMove, headers[toIndex]);
-    }
-    
-    // Move all body cells
-    const bodyRows = table.querySelectorAll('tbody tr');
-    bodyRows.forEach(row => {
-        const cells = Array.from(row.children);
-        const cellToMove = cells[fromIndex];
-        
-        if (fromIndex < toIndex) {
-            row.insertBefore(cellToMove, cells[toIndex + 1]);
-        } else {
-            row.insertBefore(cellToMove, cells[toIndex]);
-        }
-    });
-}
-
-// Participant row drag and drop
-let draggedParticipant = null;
-
-function handleParticipantDragStart(e) {
-    draggedParticipant = this;
-    this.style.opacity = '0.5';
-    e.dataTransfer.effectAllowed = 'move';
-}
-
-function handleParticipantDragOver(e) {
-    if (e.preventDefault) {
-        e.preventDefault();
-    }
-    e.dataTransfer.dropEffect = 'move';
-    return false;
-}
-
-function handleParticipantDrop(e) {
-    if (e.stopPropagation) {
-        e.stopPropagation();
-    }
-    
-    if (draggedParticipant !== this) {
-        const parent = this.parentNode;
-        const draggedIndex = Array.from(parent.children).indexOf(draggedParticipant);
-        const targetIndex = Array.from(parent.children).indexOf(this);
-        
-        if (draggedIndex < targetIndex) {
-            parent.insertBefore(draggedParticipant, this.nextSibling);
-        } else {
-            parent.insertBefore(draggedParticipant, this);
-        }
-        
-        saveAllData();
-        showMessage('Participant order updated!', 'success');
-    }
-    
-    return false;
-}
-
-function handleParticipantDragEnd(e) {
-    this.style.opacity = '1';
-    draggedParticipant = null;
-}
-
-// Initialize participant drag and drop for existing rows
-function initializeParticipantDragDrop() {
-    document.querySelectorAll('#participantsTable tbody tr').forEach(row => {
-        row.draggable = true;
-        row.addEventListener('dragstart', handleParticipantDragStart);
-        row.addEventListener('dragover', handleParticipantDragOver);
-        row.addEventListener('drop', handleParticipantDrop);
-        row.addEventListener('dragend', handleParticipantDragEnd);
-    });
 }
 
 function exportParticipants() {
@@ -1107,6 +912,5 @@ window.applyLegendColor = applyLegendColor;
 window.closeAddActivityModal = closeAddActivityModal;
 window.closeAddColumnModal = closeAddColumnModal;
 window.selectDay = selectDay;
-window.initializeParticipantDragDrop = initializeParticipantDragDrop;
 
 console.log('All functionality initialized successfully!');
