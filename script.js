@@ -48,6 +48,7 @@ function saveNow() {
     
     try {
         const allData = [];
+        const colorData = {}; // Add color data storage
         
         // Get ALL editable elements
         const editables = document.querySelectorAll('[contenteditable="true"]');
@@ -61,16 +62,30 @@ function saveNow() {
             });
         });
         
+        // Save activity colors
+        document.querySelectorAll('.time-slot').forEach(function(slot, index) {
+            const style = slot.style;
+            if (style.borderLeftColor || style.borderLeftWidth || style.borderLeftStyle) {
+                colorData[`activity_${index}`] = {
+                    borderLeftColor: style.borderLeftColor,
+                    borderLeftWidth: style.borderLeftWidth,
+                    borderLeftStyle: style.borderLeftStyle
+                };
+                console.log(`💾 Saved color for activity ${index}:`, style.borderLeftColor);
+            }
+        });
+        
         // Save to localStorage
         const saveObject = {
             saved: new Date().toISOString(),
-            elements: allData
+            elements: allData,
+            colors: colorData
         };
         
         localStorage.setItem('website-data', JSON.stringify(saveObject));
         
-        console.log(`✅ SAVED ${allData.length} elements successfully`);
-        showMessage(`💾 Saved ${allData.length} items`);
+        console.log(`✅ SAVED ${allData.length} elements and ${Object.keys(colorData).length} colors successfully`);
+        showMessage(`💾 Saved ${allData.length} items + colors`);
         
         return true;
         
@@ -104,8 +119,24 @@ function loadEverything() {
             }
         });
         
+        // Restore activity colors
+        if (data.colors) {
+            Object.keys(data.colors).forEach(function(key) {
+                const index = key.replace('activity_', '');
+                const slots = document.querySelectorAll('.time-slot');
+                if (slots[index]) {
+                    const colorInfo = data.colors[key];
+                    slots[index].style.borderLeftColor = colorInfo.borderLeftColor;
+                    slots[index].style.borderLeftWidth = colorInfo.borderLeftWidth;
+                    slots[index].style.borderLeftStyle = colorInfo.borderLeftStyle;
+                    console.log(`📂 Restored color for activity ${index}:`, colorInfo.borderLeftColor);
+                }
+            });
+            console.log(`✅ RESTORED ${Object.keys(data.colors).length} activity colors`);
+        }
+        
         console.log(`✅ RESTORED ${restored} elements`);
-        showMessage(`📂 Loaded ${restored} items`);
+        showMessage(`📂 Loaded ${restored} items + colors`);
         
     } catch (error) {
         console.error('❌ LOAD FAILED:', error);
@@ -351,10 +382,133 @@ function deleteParticipant(button) {
     }
 }
 
+function showAddActivityModal(dayName) {
+    const modal = document.createElement('div');
+    modal.className = 'add-activity-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 500px; width: 90%;">
+            <h3>Add New Activity to ${dayName}</h3>
+            <form id="addActivityForm">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Time:</label>
+                    <input type="text" id="activityTime" placeholder="e.g., 2:00 PM - 3:00 PM" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Activity Title:</label>
+                    <input type="text" id="activityTitle" placeholder="e.g., Team Discussion" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Description:</label>
+                    <textarea id="activityDescription" placeholder="e.g., Owner: John | Timekeeper: Jane" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; height: 80px;"></textarea>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Activity Type:</label>
+                    <select id="activityType" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="meeting">🏢 Meeting</option>
+                        <option value="workshop">🛠️ Workshop</option>
+                        <option value="demo">💻 Demo</option>
+                        <option value="social">🍽️ Social</option>
+                        <option value="break">☕ Break</option>
+                        <option value="free">🆓 Free Time</option>
+                        <option value="arrival">✈️ Arrival</option>
+                    </select>
+                </div>
+                <div style="text-align: right;">
+                    <button type="button" onclick="closeAddActivityModal()" style="background: #6c757d; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; margin-right: 1rem;">Cancel</button>
+                    <button type="submit" style="background: #28a745; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer;">Add Activity</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle form submission
+    document.getElementById('addActivityForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const time = document.getElementById('activityTime').value;
+        const title = document.getElementById('activityTitle').value;
+        const description = document.getElementById('activityDescription').value;
+        const type = document.getElementById('activityType').value;
+        
+        addActivityToDay(dayName, time, title, description, type);
+        closeAddActivityModal();
+    });
+    
+    // Close on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeAddActivityModal();
+        }
+    });
+}
+
+function addActivityToDay(dayName, time, title, description, type) {
+    // Find the correct day column
+    const dayColumns = document.querySelectorAll('.day-column');
+    let targetColumn = null;
+    
+    dayColumns.forEach(function(column) {
+        const dayTitle = column.querySelector('h3').textContent;
+        if (dayTitle === dayName) {
+            targetColumn = column;
+        }
+    });
+    
+    if (!targetColumn) {
+        console.error('Could not find day column for:', dayName);
+        return;
+    }
+    
+    // Create new activity element
+    const newActivity = document.createElement('div');
+    newActivity.className = `time-slot ${type}`;
+    newActivity.setAttribute('data-category', type);
+    newActivity.setAttribute('data-activity', `custom-${Date.now()}`);
+    
+    newActivity.innerHTML = `
+        <div class="time" contenteditable="true">${time}</div>
+        <div class="session">
+            <h4 contenteditable="true">${title}</h4>
+            <p contenteditable="true">${description}</p>
+        </div>
+    `;
+    
+    // Add the new activity to the day column
+    targetColumn.appendChild(newActivity);
+    
+    console.log(`✅ Added new activity "${title}" to ${dayName}`);
+    saveNow(); // Save the changes
+    showMessage(`✅ Activity "${title}" added to ${dayName}!`, 'success');
+}
+
+function closeAddActivityModal() {
+    const modal = document.querySelector('.add-activity-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
 // Make functions available globally
 window.saveNow = saveNow;
 window.loadEverything = loadEverything;
 window.testNow = testNow;
 window.deleteParticipant = deleteParticipant;
+window.showAddActivityModal = showAddActivityModal;
+window.closeAddActivityModal = closeAddActivityModal;
 
 console.log('🎉 BASIC save system ready!');

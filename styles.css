@@ -420,6 +420,28 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* Add Activity Button */
+.add-activity-btn {
+    background: var(--aws-orange);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
+    display: block;
+    width: 100%;
+}
+
+.add-activity-btn:hover {
+    background: #e68900;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
 /* Legend color buttons */
 .legend-color-btn {
     background: rgba(255, 255, 255, 0.3);
