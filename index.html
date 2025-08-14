@@ -284,15 +284,29 @@
                 <!-- Embedded Google Sheets -->
                 <div class="sheets-embed">
                     <iframe 
-                        src="https://docs.google.com/spreadsheets/d/1aXiqUbVr0bLXdmFrT145pP3zHdQP90B1l_ekv2p4Hv8/edit?usp=sharing&rm=minimal"
+                        src="https://docs.google.com/spreadsheets/d/1aXiqUbVr0bLXdmFrT145pP3zHdQP90B1l_ekv2p4Hv8/edit?usp=sharing&widget=true&headers=false&chrome=false"
                         width="100%" 
                         height="600" 
                         frameborder="0" 
                         scrolling="yes"
                         allowfullscreen="true"
                         title="Participants Google Sheet">
-                        <p>Loading Google Sheets... If you don't see the spreadsheet, please <a href="https://docs.google.com/spreadsheets/d/1aXiqUbVr0bLXdmFrT145pP3zHdQP90B1l_ekv2p4Hv8/edit?gid=0#gid=0" target="_blank">click here to open it directly</a>.</p>
                     </iframe>
+                    
+                    <!-- Fallback message if iframe doesn't load -->
+                    <div class="sheets-fallback" style="padding: 20px; text-align: center; background: #f8f9fa; border: 2px solid #4285f4; border-radius: 8px; margin-top: 10px;">
+                        <h3 style="color: #4285f4; margin-top: 0;">📊 Participants Google Sheet</h3>
+                        <p><strong>If you don't see the spreadsheet above, it might be due to browser security settings.</strong></p>
+                        <p>Please click the button below to access the collaborative participants list:</p>
+                        <a href="https://docs.google.com/spreadsheets/d/1aXiqUbVr0bLXdmFrT145pP3zHdQP90B1l_ekv2p4Hv8/edit?gid=0#gid=0" 
+                           target="_blank" 
+                           style="display: inline-block; background: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px;">
+                            📝 Open Participants Sheet
+                        </a>
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 15px;">
+                            <em>This will open the Google Sheet in a new tab where you can edit participant information collaboratively.</em>
+                        </p>
+                    </div>
                 </div>
                 
                 <div class="sheets-instructions">
