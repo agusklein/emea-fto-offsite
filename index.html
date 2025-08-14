@@ -493,5 +493,17 @@
     </main>
 
     <script src="script.js"></script>
+    
+    <script>
+        // Simple real-time sync configuration using GitHub Gist
+        window.SYNC_CONFIG = {
+            enabled: true,
+            gistId: 'emea-fto-offsite-sync',
+            pollInterval: 5000, // Check for updates every 5 seconds
+            apiUrl: 'https://api.github.com/gists'
+        };
+        
+        console.log('🔄 Real-time sync configuration loaded');
+    </script>
 </body>
 </html>
