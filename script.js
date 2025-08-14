@@ -73,147 +73,111 @@ function saveDataNow() {
     }
     
     saveInProgress = true;
-    console.log('💾 SAVING ENTIRE WEBSITE DATA NOW...');
+    console.log('💾 SAVING COMPLETE WEBSITE WITH FULL HTML STRUCTURE...');
     
     try {
         const currentTime = Date.now();
         
-        // Create comprehensive save object for ENTIRE website
+        // Create bulletproof save object that captures EVERYTHING
         const saveData = {
             timestamp: new Date().toISOString(),
             saveTime: currentTime,
-            version: 'ultra-simple-v2-complete',
+            version: 'bulletproof-html-v1',
             
-            // Save complete page HTML as ultimate backup
-            completeHTML: document.documentElement.innerHTML,
+            // Save COMPLETE HTML of each major section
+            completeAgendaHTML: null,
+            completeParticipantsHTML: null,
+            completeHeaderHTML: null,
+            completeWelcomeHTML: null,
+            completeBarcelonaHTML: null,
             
-            // Save ALL editable content from ENTIRE website
+            // Backup: Save individual editable content
             editableElements: [],
             
-            // Save activity colors from agenda
-            activityColors: [],
-            
-            // Save participant data
-            participantRows: [],
-            
-            // Save header section data
-            headerElements: [],
-            
-            // Save welcome/intro section data
-            welcomeElements: [],
-            
-            // Save Barcelona information section data
-            barcelonaElements: []
+            // Backup: Save activity-specific data
+            activityData: []
         };
         
-        // Capture ALL editable elements from ENTIRE website
-        const editables = document.querySelectorAll('[contenteditable="true"]');
-        console.log(`💾 Capturing ${editables.length} editable elements from ENTIRE website...`);
+        // Capture COMPLETE HTML of each section
+        const agendaSection = document.querySelector('.agenda');
+        if (agendaSection) {
+            saveData.completeAgendaHTML = agendaSection.outerHTML;
+            console.log('💾 Saved complete AGENDA HTML structure');
+        }
         
+        const participantsSection = document.querySelector('.participants');
+        if (participantsSection) {
+            saveData.completeParticipantsHTML = participantsSection.outerHTML;
+            console.log('💾 Saved complete PARTICIPANTS HTML structure');
+        }
+        
+        const headerSection = document.querySelector('header');
+        if (headerSection) {
+            saveData.completeHeaderHTML = headerSection.outerHTML;
+            console.log('💾 Saved complete HEADER HTML structure');
+        }
+        
+        const welcomeSection = document.querySelector('.welcome');
+        if (welcomeSection) {
+            saveData.completeWelcomeHTML = welcomeSection.outerHTML;
+            console.log('💾 Saved complete WELCOME HTML structure');
+        }
+        
+        const barcelonaSection = document.querySelector('.barcelona-info');
+        if (barcelonaSection) {
+            saveData.completeBarcelonaHTML = barcelonaSection.outerHTML;
+            console.log('💾 Saved complete BARCELONA HTML structure');
+        }
+        
+        // Backup: Capture all editable elements as fallback
+        const editables = document.querySelectorAll('[contenteditable="true"]');
         editables.forEach(function(element, index) {
-            const section = getElementSection(element);
             saveData.editableElements.push({
                 index: index,
                 text: element.textContent || '',
                 innerHTML: element.innerHTML || '',
                 tagName: element.tagName,
                 className: element.className,
-                id: element.id || '',
-                parentClassName: element.parentElement ? element.parentElement.className : '',
-                section: section // Track which section this belongs to
+                section: getElementSection(element)
             });
         });
         
-        // Capture HEADER section elements specifically
-        const headerEditables = document.querySelectorAll('header [contenteditable="true"]');
-        headerEditables.forEach(function(element, index) {
-            saveData.headerElements.push({
-                index: index,
-                text: element.textContent || '',
-                innerHTML: element.innerHTML || '',
-                tagName: element.tagName,
-                className: element.className
-            });
-        });
-        
-        // Capture WELCOME section elements specifically
-        const welcomeEditables = document.querySelectorAll('.welcome [contenteditable="true"]');
-        welcomeEditables.forEach(function(element, index) {
-            saveData.welcomeElements.push({
-                index: index,
-                text: element.textContent || '',
-                innerHTML: element.innerHTML || '',
-                tagName: element.tagName,
-                className: element.className
-            });
-        });
-        
-        // Capture BARCELONA INFO section elements specifically
-        const barcelonaEditables = document.querySelectorAll('.barcelona-info [contenteditable="true"]');
-        barcelonaEditables.forEach(function(element, index) {
-            saveData.barcelonaElements.push({
-                index: index,
-                text: element.textContent || '',
-                innerHTML: element.innerHTML || '',
-                tagName: element.tagName,
-                className: element.className
-            });
-        });
-        
-        // Capture activity colors and complete structure from agenda
+        // Backup: Capture activity-specific data
         const activities = document.querySelectorAll('.time-slot');
         activities.forEach(function(activity, index) {
-            // Save both styles and complete HTML structure
-            saveData.activityColors.push({
+            saveData.activityData.push({
                 index: index,
-                cssText: activity.style.cssText || '',
+                outerHTML: activity.outerHTML,
                 dataActivity: activity.dataset.activity || '',
                 dataCategory: activity.dataset.category || '',
-                className: activity.className || '',
-                completeHTML: activity.outerHTML, // Save complete HTML including buttons
-                hasDeleteButton: !!activity.querySelector('.delete-activity-btn'),
-                hasMoveButtons: !!activity.querySelector('.move-buttons')
+                cssText: activity.style.cssText || '',
+                parentDayColumn: activity.closest('.day-column')?.querySelector('h3')?.textContent || ''
             });
         });
         
-        // Capture participant data
-        const participantRows = document.querySelectorAll('#participantsBody tr');
-        participantRows.forEach(function(row, index) {
-            const cells = row.querySelectorAll('td[contenteditable="true"]');
-            const rowData = [];
-            cells.forEach(function(cell) {
-                rowData.push(cell.textContent || '');
-            });
-            if (rowData.length > 0) {
-                saveData.participantRows.push({
-                    index: index,
-                    data: rowData
-                });
-            }
-        });
-        
-        // Save to localStorage with multiple keys for safety
+        // Save to localStorage with multiple keys for maximum safety
         const jsonData = JSON.stringify(saveData);
-        localStorage.setItem('ultra-simple-data', jsonData);
-        localStorage.setItem('ultra-simple-backup', jsonData);
-        localStorage.setItem('ultra-simple-' + currentTime, jsonData);
+        localStorage.setItem('bulletproof-data', jsonData);
+        localStorage.setItem('bulletproof-backup', jsonData);
+        localStorage.setItem('bulletproof-' + currentTime, jsonData);
         
-        // Clean old saves (keep only last 3)
+        // Keep old system as additional backup
+        localStorage.setItem('ultra-simple-data', jsonData);
+        
+        // Clean old saves
         cleanOldSaves();
         
         lastSaveTime = currentTime;
-        console.log(`✅ COMPLETE WEBSITE SAVE SUCCESSFUL:`);
-        console.log(`📊 Total editable elements: ${editables.length}`);
-        console.log(`📊 Header elements: ${headerEditables.length}`);
-        console.log(`📊 Welcome elements: ${welcomeEditables.length}`);
-        console.log(`📊 Barcelona elements: ${barcelonaEditables.length}`);
-        console.log(`📊 Activities: ${activities.length}`);
-        console.log(`📊 Participants: ${participantRows.length}`);
+        console.log(`✅ BULLETPROOF SAVE COMPLETE:`);
+        console.log(`📊 Agenda HTML: ${saveData.completeAgendaHTML ? 'SAVED' : 'MISSING'}`);
+        console.log(`📊 Participants HTML: ${saveData.completeParticipantsHTML ? 'SAVED' : 'MISSING'}`);
+        console.log(`📊 Activities: ${activities.length} activities saved`);
+        console.log(`📊 Editable elements: ${editables.length} elements saved`);
         
-        showMessage(`💾 Saved entire website: ${editables.length} elements`);
+        showMessage(`💾 Bulletproof save: ${activities.length} activities + ${editables.length} elements`);
         
     } catch (error) {
-        console.error('❌ COMPLETE WEBSITE SAVE FAILED:', error);
+        console.error('❌ BULLETPROOF SAVE FAILED:', error);
         showMessage('❌ Save failed: ' + error.message);
     } finally {
         saveInProgress = false;
@@ -231,26 +195,32 @@ function getElementSection(element) {
 }
 
 function loadData() {
-    console.log('📂 LOADING ENTIRE WEBSITE DATA...');
+    console.log('📂 LOADING BULLETPROOF DATA WITH COMPLETE HTML RESTORATION...');
     
-    let savedData = localStorage.getItem('ultra-simple-data');
+    let savedData = localStorage.getItem('bulletproof-data');
     
-    // Try backup if main fails
+    // Try backups if main fails
     if (!savedData) {
-        console.log('📂 Trying backup...');
-        savedData = localStorage.getItem('ultra-simple-backup');
+        console.log('📂 Trying bulletproof backup...');
+        savedData = localStorage.getItem('bulletproof-backup');
     }
     
-    // Try timestamped saves if backup fails
     if (!savedData) {
-        console.log('📂 Trying timestamped saves...');
+        console.log('📂 Trying timestamped bulletproof saves...');
         const keys = Object.keys(localStorage);
-        const timestampedKeys = keys.filter(key => key.startsWith('ultra-simple-') && key !== 'ultra-simple-data' && key !== 'ultra-simple-backup');
+        const timestampedKeys = keys.filter(key => key.startsWith('bulletproof-') && 
+            key !== 'bulletproof-data' && key !== 'bulletproof-backup');
         if (timestampedKeys.length > 0) {
-            timestampedKeys.sort().reverse(); // Get most recent
+            timestampedKeys.sort().reverse();
             savedData = localStorage.getItem(timestampedKeys[0]);
             console.log('📂 Using timestamped save:', timestampedKeys[0]);
         }
+    }
+    
+    // Fallback to old system
+    if (!savedData) {
+        console.log('📂 Trying ultra-simple fallback...');
+        savedData = localStorage.getItem('ultra-simple-data');
     }
     
     if (!savedData) {
@@ -263,152 +233,108 @@ function loadData() {
         console.log('📂 Found saved data from:', data.timestamp);
         console.log('📂 Data version:', data.version);
         
-        // Restore ALL editable elements from ENTIRE website
-        if (data.editableElements) {
-            const currentEditables = document.querySelectorAll('[contenteditable="true"]');
-            console.log(`📂 Restoring ${data.editableElements.length} editable elements from ENTIRE website...`);
-            
-            data.editableElements.forEach(function(savedElement) {
-                // Find matching element using multiple strategies
-                let targetElement = null;
-                
-                // Strategy 1: Try by index first (most reliable for simple approach)
-                if (currentEditables[savedElement.index]) {
-                    targetElement = currentEditables[savedElement.index];
-                }
-                
-                // Strategy 2: Try by class and tag if index doesn't work
-                if (!targetElement && savedElement.className) {
-                    const candidates = document.querySelectorAll(`${savedElement.tagName.toLowerCase()}.${savedElement.className.split(' ').join('.')}`);
-                    if (candidates.length > 0) {
-                        targetElement = candidates[0];
-                    }
-                }
-                
-                // Strategy 3: Try by section-specific matching
-                if (!targetElement && savedElement.section) {
-                    const sectionElements = getSectionEditables(savedElement.section);
-                    if (sectionElements.length > 0) {
-                        // Find by tag within section
-                        const sectionCandidates = sectionElements.filter(el => el.tagName === savedElement.tagName);
-                        if (sectionCandidates.length > 0) {
-                            targetElement = sectionCandidates[0];
-                        }
-                    }
-                }
-                
-                // Restore content
-                if (targetElement) {
-                    targetElement.textContent = savedElement.text;
-                    console.log(`📂 Restored ${savedElement.section || 'UNKNOWN'}: "${savedElement.text.substring(0, 30)}..."`);
-                }
-            });
+        let restoredSections = 0;
+        
+        // Restore COMPLETE HTML sections
+        if (data.completeAgendaHTML) {
+            console.log('📂 Restoring COMPLETE AGENDA HTML...');
+            const currentAgenda = document.querySelector('.agenda');
+            if (currentAgenda) {
+                currentAgenda.outerHTML = data.completeAgendaHTML;
+                restoredSections++;
+                console.log('✅ AGENDA section completely restored');
+            }
         }
         
-        // Restore HEADER section specifically
-        if (data.headerElements) {
-            console.log(`📂 Restoring ${data.headerElements.length} header elements...`);
-            const currentHeaderElements = document.querySelectorAll('header [contenteditable="true"]');
-            
-            data.headerElements.forEach(function(savedElement, index) {
-                if (currentHeaderElements[index]) {
-                    currentHeaderElements[index].textContent = savedElement.text;
-                    console.log(`📂 Restored HEADER: "${savedElement.text}"`);
-                }
-            });
+        if (data.completeParticipantsHTML) {
+            console.log('📂 Restoring COMPLETE PARTICIPANTS HTML...');
+            const currentParticipants = document.querySelector('.participants');
+            if (currentParticipants) {
+                currentParticipants.outerHTML = data.completeParticipantsHTML;
+                restoredSections++;
+                console.log('✅ PARTICIPANTS section completely restored');
+            }
         }
         
-        // Restore WELCOME section specifically
-        if (data.welcomeElements) {
-            console.log(`📂 Restoring ${data.welcomeElements.length} welcome elements...`);
-            const currentWelcomeElements = document.querySelectorAll('.welcome [contenteditable="true"]');
-            
-            data.welcomeElements.forEach(function(savedElement, index) {
-                if (currentWelcomeElements[index]) {
-                    currentWelcomeElements[index].textContent = savedElement.text;
-                    console.log(`📂 Restored WELCOME: "${savedElement.text.substring(0, 30)}..."`);
-                }
-            });
+        if (data.completeHeaderHTML) {
+            console.log('📂 Restoring COMPLETE HEADER HTML...');
+            const currentHeader = document.querySelector('header');
+            if (currentHeader) {
+                currentHeader.outerHTML = data.completeHeaderHTML;
+                restoredSections++;
+                console.log('✅ HEADER section completely restored');
+            }
         }
         
-        // Restore BARCELONA INFO section specifically
-        if (data.barcelonaElements) {
-            console.log(`📂 Restoring ${data.barcelonaElements.length} Barcelona info elements...`);
-            const currentBarcelonaElements = document.querySelectorAll('.barcelona-info [contenteditable="true"]');
-            
-            data.barcelonaElements.forEach(function(savedElement, index) {
-                if (currentBarcelonaElements[index]) {
-                    currentBarcelonaElements[index].textContent = savedElement.text;
-                    console.log(`📂 Restored BARCELONA: "${savedElement.text.substring(0, 30)}..."`);
-                }
-            });
+        if (data.completeWelcomeHTML) {
+            console.log('📂 Restoring COMPLETE WELCOME HTML...');
+            const currentWelcome = document.querySelector('.welcome');
+            if (currentWelcome) {
+                currentWelcome.outerHTML = data.completeWelcomeHTML;
+                restoredSections++;
+                console.log('✅ WELCOME section completely restored');
+            }
         }
         
-        // Restore activity colors and structure from agenda
-        if (data.activityColors) {
-            console.log(`📂 Restoring ${data.activityColors.length} activities with complete structure...`);
-            const currentActivities = document.querySelectorAll('.time-slot');
+        if (data.completeBarcelonaHTML) {
+            console.log('📂 Restoring COMPLETE BARCELONA HTML...');
+            const currentBarcelona = document.querySelector('.barcelona-info');
+            if (currentBarcelona) {
+                currentBarcelona.outerHTML = data.completeBarcelonaHTML;
+                restoredSections++;
+                console.log('✅ BARCELONA section completely restored');
+            }
+        }
+        
+        // Re-initialize all functionality after HTML restoration
+        setTimeout(function() {
+            console.log('🔄 Re-initializing ALL functionality after complete HTML restoration...');
             
-            data.activityColors.forEach(function(savedActivity) {
-                let targetActivity = null;
+            // Re-setup saving system
+            setupSimpleSaving();
+            
+            // Re-initialize all features
+            initializeFeatures();
+            
+            console.log('✅ All functionality re-initialized');
+        }, 500);
+        
+        // Fallback: If no complete HTML was saved, try individual element restoration
+        if (restoredSections === 0) {
+            console.log('📂 No complete HTML found, trying individual element restoration...');
+            
+            if (data.editableElements) {
+                const currentEditables = document.querySelectorAll('[contenteditable="true"]');
+                console.log(`📂 Restoring ${data.editableElements.length} individual elements...`);
                 
-                // Try by data-activity attribute
-                if (savedActivity.dataActivity) {
-                    targetActivity = document.querySelector(`[data-activity="${savedActivity.dataActivity}"]`);
-                }
-                
-                // Try by index
-                if (!targetActivity && currentActivities[savedActivity.index]) {
-                    targetActivity = currentActivities[savedActivity.index];
-                }
-                
-                // Restore styles and properties
-                if (targetActivity) {
-                    if (savedActivity.cssText) {
-                        targetActivity.style.cssText = savedActivity.cssText;
+                data.editableElements.forEach(function(savedElement) {
+                    let targetElement = null;
+                    
+                    if (currentEditables[savedElement.index]) {
+                        targetElement = currentEditables[savedElement.index];
                     }
-                    if (savedActivity.dataCategory) {
-                        targetActivity.dataset.category = savedActivity.dataCategory;
+                    
+                    if (targetElement) {
+                        targetElement.textContent = savedElement.text;
+                        console.log(`📂 Restored: "${savedElement.text.substring(0, 30)}..."`);
                     }
-                    if (savedActivity.className) {
-                        targetActivity.className = savedActivity.className;
-                    }
-                    console.log(`📂 Restored activity ${savedActivity.index} with styles`);
-                }
-            });
-            
-            // Re-initialize delete and move buttons for all activities
-            setTimeout(function() {
-                console.log('🔄 Re-initializing activity buttons after load...');
-                addDeleteAndMoveButtons();
-                initializeDragAndDrop();
-            }, 500);
-        }
-        
-        // Restore participant data
-        if (data.participantRows) {
-            console.log(`📂 Restoring ${data.participantRows.length} participant rows...`);
-            const currentRows = document.querySelectorAll('#participantsBody tr');
-            
-            data.participantRows.forEach(function(savedRow) {
-                if (currentRows[savedRow.index]) {
-                    const cells = currentRows[savedRow.index].querySelectorAll('td[contenteditable="true"]');
-                    savedRow.data.forEach(function(cellText, cellIndex) {
-                        if (cells[cellIndex]) {
-                            cells[cellIndex].textContent = cellText;
-                        }
-                    });
-                }
-            });
+                });
+            }
         }
         
         const loadTime = new Date(data.timestamp).toLocaleString();
-        showMessage(`📂 Loaded entire website from ${loadTime}`);
-        console.log('✅ COMPLETE WEBSITE LOAD SUCCESSFUL');
+        showMessage(`📂 Bulletproof load: ${restoredSections} sections restored from ${loadTime}`);
+        console.log(`✅ BULLETPROOF LOAD COMPLETE - ${restoredSections} sections restored`);
         
     } catch (error) {
-        console.error('❌ COMPLETE WEBSITE LOAD FAILED:', error);
+        console.error('❌ BULLETPROOF LOAD FAILED:', error);
         showMessage('❌ Load failed: ' + error.message);
+        
+        // Try to recover with simpler approach
+        console.log('🔄 Attempting simple recovery...');
+        setTimeout(function() {
+            initializeFeatures();
+        }, 1000);
     }
 }
 
@@ -432,14 +358,30 @@ function getSectionEditables(section) {
 
 function cleanOldSaves() {
     const keys = Object.keys(localStorage);
-    const timestampedKeys = keys.filter(key => key.startsWith('ultra-simple-') && 
-        key !== 'ultra-simple-data' && key !== 'ultra-simple-backup');
     
-    if (timestampedKeys.length > 3) {
-        timestampedKeys.sort();
-        const toRemove = timestampedKeys.slice(0, timestampedKeys.length - 3);
+    // Clean old bulletproof saves
+    const bulletproofKeys = keys.filter(key => key.startsWith('bulletproof-') && 
+        key !== 'bulletproof-data' && key !== 'bulletproof-backup');
+    
+    if (bulletproofKeys.length > 3) {
+        bulletproofKeys.sort();
+        const toRemove = bulletproofKeys.slice(0, bulletproofKeys.length - 3);
         toRemove.forEach(function(key) {
             localStorage.removeItem(key);
+            console.log('🧹 Cleaned old bulletproof save:', key);
+        });
+    }
+    
+    // Clean old ultra-simple saves
+    const ultraSimpleKeys = keys.filter(key => key.startsWith('ultra-simple-') && 
+        key !== 'ultra-simple-data' && key !== 'ultra-simple-backup');
+    
+    if (ultraSimpleKeys.length > 3) {
+        ultraSimpleKeys.sort();
+        const toRemove = ultraSimpleKeys.slice(0, ultraSimpleKeys.length - 3);
+        toRemove.forEach(function(key) {
+            localStorage.removeItem(key);
+            console.log('🧹 Cleaned old ultra-simple save:', key);
         });
     }
 }
