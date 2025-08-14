@@ -442,6 +442,29 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Drag and Drop Functionality */
+.time-slot {
+    cursor: move;
+    transition: all 0.3s ease;
+}
+
+.time-slot:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.time-slot.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    z-index: 1000;
+}
+
+.day-column.drag-over {
+    background: rgba(75, 156, 211, 0.1);
+    border: 2px dashed var(--aws-light-blue);
+    border-radius: 8px;
+}
+
 /* Delete Activity Button */
 .delete-activity-btn {
     position: absolute;

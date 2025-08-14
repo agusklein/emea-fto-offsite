@@ -160,17 +160,20 @@ function saveDataNow() {
             });
         });
         
-        // Capture activity colors from agenda
+        // Capture activity colors and complete structure from agenda
         const activities = document.querySelectorAll('.time-slot');
         activities.forEach(function(activity, index) {
-            if (activity.style.cssText) {
-                saveData.activityColors.push({
-                    index: index,
-                    cssText: activity.style.cssText,
-                    dataActivity: activity.dataset.activity || '',
-                    innerHTML: activity.innerHTML
-                });
-            }
+            // Save both styles and complete HTML structure
+            saveData.activityColors.push({
+                index: index,
+                cssText: activity.style.cssText || '',
+                dataActivity: activity.dataset.activity || '',
+                dataCategory: activity.dataset.category || '',
+                className: activity.className || '',
+                completeHTML: activity.outerHTML, // Save complete HTML including buttons
+                hasDeleteButton: !!activity.querySelector('.delete-activity-btn'),
+                hasMoveButtons: !!activity.querySelector('.move-buttons')
+            });
         });
         
         // Capture participant data
@@ -341,30 +344,45 @@ function loadData() {
             });
         }
         
-        // Restore activity colors from agenda
+        // Restore activity colors and structure from agenda
         if (data.activityColors) {
-            console.log(`📂 Restoring ${data.activityColors.length} activity colors...`);
+            console.log(`📂 Restoring ${data.activityColors.length} activities with complete structure...`);
             const currentActivities = document.querySelectorAll('.time-slot');
             
-            data.activityColors.forEach(function(savedColor) {
+            data.activityColors.forEach(function(savedActivity) {
                 let targetActivity = null;
                 
                 // Try by data-activity attribute
-                if (savedColor.dataActivity) {
-                    targetActivity = document.querySelector(`[data-activity="${savedColor.dataActivity}"]`);
+                if (savedActivity.dataActivity) {
+                    targetActivity = document.querySelector(`[data-activity="${savedActivity.dataActivity}"]`);
                 }
                 
                 // Try by index
-                if (!targetActivity && currentActivities[savedColor.index]) {
-                    targetActivity = currentActivities[savedColor.index];
+                if (!targetActivity && currentActivities[savedActivity.index]) {
+                    targetActivity = currentActivities[savedActivity.index];
                 }
                 
-                // Restore color
-                if (targetActivity && savedColor.cssText) {
-                    targetActivity.style.cssText = savedColor.cssText;
-                    console.log(`📂 Restored color for activity ${savedColor.index}`);
+                // Restore styles and properties
+                if (targetActivity) {
+                    if (savedActivity.cssText) {
+                        targetActivity.style.cssText = savedActivity.cssText;
+                    }
+                    if (savedActivity.dataCategory) {
+                        targetActivity.dataset.category = savedActivity.dataCategory;
+                    }
+                    if (savedActivity.className) {
+                        targetActivity.className = savedActivity.className;
+                    }
+                    console.log(`📂 Restored activity ${savedActivity.index} with styles`);
                 }
             });
+            
+            // Re-initialize delete and move buttons for all activities
+            setTimeout(function() {
+                console.log('🔄 Re-initializing activity buttons after load...');
+                addDeleteAndMoveButtons();
+                initializeDragAndDrop();
+            }, 500);
         }
         
         // Restore participant data
@@ -526,11 +544,249 @@ function initializeFeatures() {
     // Initialize buttons
     initializeButtons();
     
-    // Initialize drag and drop
+    // Add delete and move buttons to all existing activities
     setTimeout(function() {
+        addDeleteAndMoveButtons();
         initializeDragAndDrop();
-        addMoveButtons();
     }, 1000);
+}
+
+// Add delete and move buttons to all activities
+function addDeleteAndMoveButtons() {
+    console.log('🔧 Adding delete and move buttons to all activities...');
+    
+    const activities = document.querySelectorAll('.time-slot');
+    console.log(`🔧 Found ${activities.length} activities to enhance`);
+    
+    activities.forEach(function(activity) {
+        // Don't add if already has buttons
+        if (activity.querySelector('.delete-activity-btn')) {
+            return;
+        }
+        
+        // Add delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-activity-btn';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.title = 'Delete Activity';
+        deleteBtn.onclick = function() { deleteActivity(this); };
+        deleteBtn.style.cssText = `
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+        
+        // Add move buttons
+        const moveButtons = document.createElement('div');
+        moveButtons.className = 'move-buttons';
+        moveButtons.style.cssText = `
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+        
+        const moveUpBtn = document.createElement('button');
+        moveUpBtn.className = 'move-btn';
+        moveUpBtn.innerHTML = '↑';
+        moveUpBtn.title = 'Move Up';
+        moveUpBtn.onclick = function() { moveActivity(this, 'up'); };
+        moveUpBtn.style.cssText = `
+            background: var(--aws-orange);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        `;
+        
+        const moveDownBtn = document.createElement('button');
+        moveDownBtn.className = 'move-btn';
+        moveDownBtn.innerHTML = '↓';
+        moveDownBtn.title = 'Move Down';
+        moveDownBtn.onclick = function() { moveActivity(this, 'down'); };
+        moveDownBtn.style.cssText = `
+            background: var(--aws-orange);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        `;
+        
+        moveButtons.appendChild(moveUpBtn);
+        moveButtons.appendChild(moveDownBtn);
+        
+        // Add hover effects
+        activity.addEventListener('mouseenter', function() {
+            deleteBtn.style.opacity = '1';
+            moveButtons.style.opacity = '1';
+        });
+        
+        activity.addEventListener('mouseleave', function() {
+            deleteBtn.style.opacity = '0';
+            moveButtons.style.opacity = '0';
+        });
+        
+        // Make sure activity has relative positioning
+        activity.style.position = 'relative';
+        
+        // Add buttons to activity
+        activity.appendChild(deleteBtn);
+        activity.appendChild(moveButtons);
+        
+        console.log('🔧 Added buttons to activity:', activity.querySelector('h4')?.textContent);
+    });
+    
+    console.log('✅ Delete and move buttons added to all activities');
+}
+
+// Delete activity function
+function deleteActivity(button) {
+    const activity = button.closest('.time-slot');
+    const activityTitle = activity.querySelector('h4')?.textContent || 'this activity';
+    
+    if (confirm(`Are you sure you want to delete "${activityTitle}"?`)) {
+        console.log('🗑️ Deleting activity:', activityTitle);
+        activity.remove();
+        
+        // Save changes immediately
+        setTimeout(function() {
+            saveDataNow();
+        }, 100);
+        
+        showMessage(`🗑️ Activity "${activityTitle}" deleted!`);
+    }
+}
+
+// Move activity up or down within the same day
+function moveActivity(button, direction) {
+    const activity = button.closest('.time-slot');
+    const dayColumn = activity.closest('.day-column');
+    const activities = Array.from(dayColumn.querySelectorAll('.time-slot'));
+    const currentIndex = activities.indexOf(activity);
+    
+    let newIndex;
+    if (direction === 'up' && currentIndex > 0) {
+        newIndex = currentIndex - 1;
+    } else if (direction === 'down' && currentIndex < activities.length - 1) {
+        newIndex = currentIndex + 1;
+    } else {
+        return; // Can't move further
+    }
+    
+    const targetActivity = activities[newIndex];
+    
+    if (direction === 'up') {
+        dayColumn.insertBefore(activity, targetActivity);
+    } else {
+        dayColumn.insertBefore(activity, targetActivity.nextSibling);
+    }
+    
+    console.log(`📍 Moved activity ${direction}:`, activity.querySelector('h4')?.textContent);
+    
+    // Save changes immediately
+    setTimeout(function() {
+        saveDataNow();
+    }, 100);
+    
+    showMessage(`📍 Activity moved ${direction}!`);
+}
+
+// Initialize drag and drop functionality
+function initializeDragAndDrop() {
+    console.log('🔄 Initializing drag and drop...');
+    
+    const activities = document.querySelectorAll('.time-slot');
+    const dayColumns = document.querySelectorAll('.day-column');
+    
+    // Make activities draggable
+    activities.forEach(function(activity) {
+        activity.draggable = true;
+        
+        activity.addEventListener('dragstart', function(e) {
+            console.log('🎯 Drag started:', activity.querySelector('h4')?.textContent);
+            activity.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', activity.outerHTML);
+        });
+        
+        activity.addEventListener('dragend', function(e) {
+            console.log('🎯 Drag ended');
+            activity.classList.remove('dragging');
+            
+            // Remove drag-over class from all columns
+            dayColumns.forEach(function(col) {
+                col.classList.remove('drag-over');
+            });
+        });
+    });
+    
+    // Make day columns drop targets
+    dayColumns.forEach(function(column) {
+        column.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            column.classList.add('drag-over');
+        });
+        
+        column.addEventListener('dragleave', function(e) {
+            if (!column.contains(e.relatedTarget)) {
+                column.classList.remove('drag-over');
+            }
+        });
+        
+        column.addEventListener('drop', function(e) {
+            e.preventDefault();
+            column.classList.remove('drag-over');
+            
+            const draggedElement = document.querySelector('.dragging');
+            if (draggedElement && draggedElement.parentElement !== column) {
+                console.log('📍 Dropping activity into new day column');
+                
+                // Remove from old location
+                draggedElement.remove();
+                
+                // Add to new location
+                const addButton = column.querySelector('.add-activity-btn');
+                if (addButton && addButton.parentElement) {
+                    column.insertBefore(draggedElement, addButton.parentElement.nextSibling);
+                } else {
+                    column.appendChild(draggedElement);
+                }
+                
+                // Re-add buttons to moved activity
+                addDeleteAndMoveButtons();
+                
+                // Save changes
+                setTimeout(function() {
+                    saveDataNow();
+                }, 100);
+                
+                showMessage('📍 Activity moved to new day!');
+            }
+        });
+    });
+    
+    console.log('✅ Drag and drop initialized');
 }
 
 // Button handlers
@@ -814,9 +1070,10 @@ function addActivityToDay(dayName, time, title, description, type) {
     newActivity.className = `time-slot ${type}`;
     newActivity.setAttribute('data-category', type);
     newActivity.setAttribute('data-activity', `custom-${Date.now()}`);
+    newActivity.style.position = 'relative';
+    newActivity.draggable = true;
     
     newActivity.innerHTML = `
-        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity" style="position: absolute; top: 8px; right: 8px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; z-index: 10;">🗑️</button>
         <div class="time" contenteditable="true">${time}</div>
         <div class="session">
             <h4 contenteditable="true">${title}</h4>
@@ -831,6 +1088,12 @@ function addActivityToDay(dayName, time, title, description, type) {
     } else {
         targetColumn.appendChild(newActivity);
     }
+    
+    // Add delete and move buttons to the new activity
+    setTimeout(function() {
+        addDeleteAndMoveButtons();
+        initializeDragAndDrop();
+    }, 100);
     
     console.log(`✅ Added new activity "${title}" to ${dayName}`);
     saveDataNow();
@@ -872,6 +1135,7 @@ window.deleteParticipant = deleteParticipant;
 window.showAddActivityModal = showAddActivityModal;
 window.closeAddActivityModal = closeAddActivityModal;
 window.deleteActivity = deleteActivity;
+window.moveActivity = moveActivity;
 window.saveDataNow = saveDataNow;
 window.loadData = loadData;
 
