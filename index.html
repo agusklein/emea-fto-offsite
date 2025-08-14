@@ -44,10 +44,7 @@
             
             <!-- Table Management Controls -->
             <div class="table-controls">
-                <button id="add-activity-btn" class="control-btn">➕ Add Activity</button>
-                <button id="edit-mode-btn" class="control-btn">✏️ Edit Mode</button>
-                <button id="export-agenda-btn" class="control-btn">📤 Export Agenda</button>
-                <button id="color-mode-btn" class="control-btn">🎨 Color Mode</button>
+                <!-- Interactive buttons removed - agenda is now view-only -->
             </div>
             
             <!-- Legend -->
@@ -86,7 +83,6 @@
                     <div class="day-header">
                         <h3 contenteditable="true">October 14th</h3>
                         <span class="day-subtitle" contenteditable="true">Tuesday - Arrival Day</span>
-                        <button class="add-activity-btn" onclick="showAddActivityModal('October 14th')">➕ Add Activity</button>
                     </div>
                     <div class="time-slot arrival" data-category="arrival" data-activity="arrival-1">
                         <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
@@ -111,7 +107,6 @@
                     <div class="day-header">
                         <h3 contenteditable="true">October 15th</h3>
                         <span class="day-subtitle" contenteditable="true">Wednesday - Main Sessions</span>
-                        <button class="add-activity-btn" onclick="showAddActivityModal('October 15th')">➕ Add Activity</button>
                     </div>
                     <div class="time-slot meeting" data-category="meeting" data-activity="welcome-intro">
                         <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
@@ -183,7 +178,6 @@
                     <div class="day-header">
                         <h3 contenteditable="true">October 16th</h3>
                         <span class="day-subtitle" contenteditable="true">Thursday - GenAI Focus</span>
-                        <button class="add-activity-btn" onclick="showAddActivityModal('October 16th')">➕ Add Activity</button>
                     </div>
                     <div class="time-slot meeting" data-category="meeting" data-activity="specialists">
                         <div class="time" contenteditable="true">9:00 AM - 10:00 AM</div>
@@ -248,7 +242,6 @@
                     <div class="day-header">
                         <h3 contenteditable="true">October 17th</h3>
                         <span class="day-subtitle" contenteditable="true">Friday - Wrap-up</span>
-                        <button class="add-activity-btn" onclick="showAddActivityModal('October 17th')">➕ Add Activity</button>
                     </div>
                     <div class="time-slot meeting" data-category="meeting" data-activity="future-fto">
                         <div class="time" contenteditable="true">9:30 AM - 10:30 AM</div>
@@ -288,9 +281,11 @@
                         width="100%" 
                         height="600" 
                         frameborder="0" 
-                        scrolling="yes"
+                        scrolling="no"
                         allowfullscreen="true"
-                        title="Participants Google Sheet">
+                        title="Participants Google Sheet"
+                        onload="this.style.pointerEvents='auto';"
+                        style="pointer-events: auto; overflow: hidden;">
                     </iframe>
                     
                     <!-- Fallback message if iframe doesn't load -->

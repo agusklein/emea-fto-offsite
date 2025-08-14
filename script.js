@@ -652,32 +652,8 @@ function testSystem() {
 }
 
 function showMessage(text, type = 'success') {
-    // Remove old messages
-    document.querySelectorAll('.status-msg').forEach(function(msg) {
-        msg.remove();
-    });
-    
-    const message = document.createElement('div');
-    message.className = 'status-msg';
-    message.textContent = text;
-    message.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#28a745' : '#dc3545'};
-        color: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        z-index: 10000;
-        font-weight: bold;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    `;
-    
-    document.body.appendChild(message);
-    
-    setTimeout(function() {
-        message.remove();
-    }, 3000);
+    // Disabled floating messages - just log to console
+    console.log(`${type.toUpperCase()}: ${text}`);
 }
 
 function initializeFeatures() {
