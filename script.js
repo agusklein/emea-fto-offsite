@@ -11,6 +11,14 @@ window.addEventListener('load', function() {
     // Set up saving
     setupSaving();
     
+    // Initialize drag and drop
+    initializeDragAndDrop();
+    
+    // Add move buttons to existing activities
+    setTimeout(function() {
+        addMoveButtons();
+    }, 500);
+    
     // Test immediately
     setTimeout(testNow, 1000);
 });
@@ -545,13 +553,19 @@ function addActivityToDay(dayName, time, title, description, type) {
         return;
     }
     
-    // Create new activity element
+    // Create new activity element with delete and move buttons
     const newActivity = document.createElement('div');
     newActivity.className = `time-slot ${type}`;
     newActivity.setAttribute('data-category', type);
     newActivity.setAttribute('data-activity', `custom-${Date.now()}`);
+    newActivity.draggable = true;
     
     newActivity.innerHTML = `
+        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
+        <div class="move-buttons">
+            <button class="move-btn" onclick="moveActivity(this, 'up')" title="Move Up">↑</button>
+            <button class="move-btn" onclick="moveActivity(this, 'down')" title="Move Down">↓</button>
+        </div>
         <div class="time" contenteditable="true">${time}</div>
         <div class="session">
             <h4 contenteditable="true">${title}</h4>
@@ -571,6 +585,9 @@ function addActivityToDay(dayName, time, title, description, type) {
     
     console.log(`✅ Added new activity "${title}" to ${dayName}`);
     
+    // Setup drag and drop for the new activity
+    setupDragAndDrop();
+    
     // Save the changes immediately
     setTimeout(function() {
         saveNow();
@@ -586,6 +603,165 @@ function closeAddActivityModal() {
     }
 }
 
+// Delete Activity Function
+function deleteActivity(button) {
+    const activity = button.closest('.time-slot');
+    const activityTitle = activity.querySelector('h4')?.textContent || 'this activity';
+    
+    if (confirm(`Are you sure you want to delete "${activityTitle}"?`)) {
+        console.log('🗑️ Deleting activity:', activityTitle);
+        activity.remove();
+        
+        // Save changes immediately
+        setTimeout(function() {
+            saveNow();
+        }, 100);
+        
+        showMessage(`🗑️ Activity "${activityTitle}" deleted!`, 'success');
+    }
+}
+
+// Initialize Drag and Drop for Activities
+function initializeDragAndDrop() {
+    console.log('🔄 Initializing drag and drop for activities...');
+    
+    // Make all time-slots draggable
+    document.addEventListener('DOMContentLoaded', function() {
+        setupDragAndDrop();
+    });
+    
+    // Re-setup drag and drop after loading saved data
+    setTimeout(setupDragAndDrop, 500);
+}
+
+function setupDragAndDrop() {
+    const timeSlots = document.querySelectorAll('.time-slot');
+    const dayColumns = document.querySelectorAll('.day-column');
+    
+    console.log(`🔄 Setting up drag and drop for ${timeSlots.length} activities`);
+    
+    // Make activities draggable
+    timeSlots.forEach(function(slot) {
+        slot.draggable = true;
+        
+        slot.addEventListener('dragstart', function(e) {
+            console.log('🎯 Drag started:', slot.querySelector('h4')?.textContent);
+            slot.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', slot.outerHTML);
+            e.dataTransfer.setData('text/plain', slot.dataset.activity || '');
+        });
+        
+        slot.addEventListener('dragend', function(e) {
+            console.log('🎯 Drag ended');
+            slot.classList.remove('dragging');
+            
+            // Remove drag-over class from all columns
+            dayColumns.forEach(col => col.classList.remove('drag-over'));
+        });
+    });
+    
+    // Make day columns drop targets
+    dayColumns.forEach(function(column) {
+        column.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            column.classList.add('drag-over');
+        });
+        
+        column.addEventListener('dragleave', function(e) {
+            // Only remove if we're actually leaving the column
+            if (!column.contains(e.relatedTarget)) {
+                column.classList.remove('drag-over');
+            }
+        });
+        
+        column.addEventListener('drop', function(e) {
+            e.preventDefault();
+            column.classList.remove('drag-over');
+            
+            const draggedElement = document.querySelector('.dragging');
+            if (draggedElement && draggedElement.parentElement !== column) {
+                console.log('📍 Dropping activity into new day column');
+                
+                // Remove from old location
+                draggedElement.remove();
+                
+                // Add to new location (before the add button)
+                const addButton = column.querySelector('.add-activity-btn');
+                if (addButton && addButton.parentElement) {
+                    column.insertBefore(draggedElement, addButton.parentElement.nextSibling);
+                } else {
+                    column.appendChild(draggedElement);
+                }
+                
+                // Re-setup drag and drop for the moved element
+                setupDragAndDrop();
+                
+                // Save changes
+                setTimeout(function() {
+                    saveNow();
+                }, 100);
+                
+                showMessage('📍 Activity moved to new day!', 'success');
+            }
+        });
+    });
+}
+
+// Add move up/down buttons to activities
+function addMoveButtons() {
+    const timeSlots = document.querySelectorAll('.time-slot');
+    
+    timeSlots.forEach(function(slot) {
+        // Don't add if already has move buttons
+        if (slot.querySelector('.move-buttons')) return;
+        
+        const moveButtons = document.createElement('div');
+        moveButtons.className = 'move-buttons';
+        moveButtons.innerHTML = `
+            <button class="move-btn" onclick="moveActivity(this, 'up')" title="Move Up">↑</button>
+            <button class="move-btn" onclick="moveActivity(this, 'down')" title="Move Down">↓</button>
+        `;
+        
+        slot.appendChild(moveButtons);
+    });
+}
+
+// Move activity up or down within the same day
+function moveActivity(button, direction) {
+    const activity = button.closest('.time-slot');
+    const dayColumn = activity.closest('.day-column');
+    const activities = Array.from(dayColumn.querySelectorAll('.time-slot'));
+    const currentIndex = activities.indexOf(activity);
+    
+    let newIndex;
+    if (direction === 'up' && currentIndex > 0) {
+        newIndex = currentIndex - 1;
+    } else if (direction === 'down' && currentIndex < activities.length - 1) {
+        newIndex = currentIndex + 1;
+    } else {
+        return; // Can't move further
+    }
+    
+    const targetActivity = activities[newIndex];
+    
+    if (direction === 'up') {
+        dayColumn.insertBefore(activity, targetActivity);
+    } else {
+        dayColumn.insertBefore(activity, targetActivity.nextSibling);
+    }
+    
+    console.log(`📍 Moved activity ${direction}:`, activity.querySelector('h4')?.textContent);
+    
+    // Save changes
+    setTimeout(function() {
+        saveNow();
+    }, 100);
+    
+    showMessage(`📍 Activity moved ${direction}!`, 'success');
+}
+
 // Make functions available globally
 window.saveNow = saveNow;
 window.loadEverything = loadEverything;
@@ -593,5 +769,7 @@ window.testNow = testNow;
 window.deleteParticipant = deleteParticipant;
 window.showAddActivityModal = showAddActivityModal;
 window.closeAddActivityModal = closeAddActivityModal;
+window.deleteActivity = deleteActivity;
+window.moveActivity = moveActivity;
 
 console.log('🎉 BASIC save system ready!');
