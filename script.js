@@ -156,7 +156,7 @@ function loadDataFromServer(data) {
     try {
         let restoredSections = 0;
         
-        // Restore complete HTML sections from server data
+        // Restore complete HTML sections from server data (excluding participants)
         if (data.completeAgendaHTML) {
             const currentAgenda = document.querySelector('.agenda');
             if (currentAgenda) {
@@ -166,14 +166,8 @@ function loadDataFromServer(data) {
             }
         }
         
-        if (data.completeParticipantsHTML) {
-            const currentParticipants = document.querySelector('.participants');
-            if (currentParticipants) {
-                currentParticipants.outerHTML = data.completeParticipantsHTML;
-                restoredSections++;
-                console.log('✅ PARTICIPANTS section restored from server');
-            }
-        }
+        // Skip participants section - now handled by Google Sheets
+        console.log('⏭️ Skipping participants section (Google Sheets integration)');
         
         if (data.completeHeaderHTML) {
             const currentHeader = document.querySelector('header');
@@ -296,18 +290,15 @@ function saveDataNow() {
             activityData: []
         };
         
-        // Capture COMPLETE HTML of each section
+        // Capture COMPLETE HTML of each section (excluding participants - now Google Sheets)
         const agendaSection = document.querySelector('.agenda');
         if (agendaSection) {
             saveData.completeAgendaHTML = agendaSection.outerHTML;
             console.log('💾 Saved complete AGENDA HTML structure');
         }
         
-        const participantsSection = document.querySelector('.participants');
-        if (participantsSection) {
-            saveData.completeParticipantsHTML = participantsSection.outerHTML;
-            console.log('💾 Saved complete PARTICIPANTS HTML structure');
-        }
+        // Skip participants section - now handled by Google Sheets
+        console.log('⏭️ Skipping participants section (Google Sheets integration)');
         
         const headerSection = document.querySelector('header');
         if (headerSection) {
@@ -943,11 +934,6 @@ function initializeDragAndDrop() {
 // Button handlers
 function initializeButtons() {
     document.addEventListener('click', function(e) {
-        // Add participant
-        if (e.target.id === 'add-participant-btn') {
-            addParticipant();
-        }
-        
         // Color mode
         if (e.target.id === 'color-mode-btn') {
             toggleColorMode();
@@ -1088,35 +1074,6 @@ function closeColorModal() {
         modal.remove();
     }
     currentTimeSlot = null;
-}
-
-// Add participant function
-function addParticipant() {
-    const tbody = document.getElementById('participantsBody');
-    if (!tbody) return;
-
-    const newRow = document.createElement('tr');
-    newRow.innerHTML = `
-        <td contenteditable="true">New Participant</td>
-        <td contenteditable="true">None</td>
-        <td contenteditable="true">-</td>
-        <td contenteditable="true">-</td>
-        <td contenteditable="true">-</td>
-        <td><button onclick="deleteParticipant(this)">🗑️</button></td>
-    `;
-    
-    tbody.appendChild(newRow);
-    console.log('👤 Added new participant');
-    saveDataNow();
-    showMessage('👤 Participant added!');
-}
-
-function deleteParticipant(button) {
-    if (confirm('Remove this participant?')) {
-        button.closest('tr').remove();
-        saveDataNow();
-        showMessage('👤 Participant removed!');
-    }
 }
 
 // Add activity modal functions
@@ -1282,7 +1239,6 @@ function addMoveButtons() {
 }
 
 // Global functions
-window.deleteParticipant = deleteParticipant;
 window.showAddActivityModal = showAddActivityModal;
 window.closeAddActivityModal = closeAddActivityModal;
 window.deleteActivity = deleteActivity;

@@ -272,172 +272,37 @@
         <section class="participants">
             <h2 class="section-title" contenteditable="true">👥 Participants</h2>
             
-            <div class="table-controls">
-                <button id="add-participant-btn" class="control-btn">➕ Add Participant</button>
-                <button id="add-column-btn" class="control-btn">📋 Add Column</button>
-                <button id="export-participants-btn" class="control-btn">📊 Export to CSV</button>
-                <button id="save-data-btn" class="control-btn">💾 Save Data</button>
-            </div>
-            
-            <div class="table-wrapper">
-                <table class="participants-table" id="participantsTable">
-                    <thead>
-                        <tr>
-                            <th contenteditable="true">Participant</th>
-                            <th contenteditable="true">Dietary Restrictions</th>
-                            <th contenteditable="true">Arrival Time at BCN</th>
-                            <th contenteditable="true">Departure Time at BCN</th>
-                            <th contenteditable="true">Hotel</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="participantsBody">
-                        <tr>
-                            <td contenteditable="true">Alfonso P</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Ana-Maria O</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Murtaza A</td>
-                            <td contenteditable="true">Halal or Kosher</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Alessandro</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Agostino G</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Claudio</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Ygal H</td>
-                            <td contenteditable="true">Kosher (or vegan)</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Erin Y</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Marta L</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Shashank K</td>
-                            <td contenteditable="true">Vegetarian</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Claudia S</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Agustin K</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Olivier D</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Orlando</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Guarav</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Alberto</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Myriam</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                        <tr>
-                            <td contenteditable="true">Emmanuelle</td>
-                            <td contenteditable="true">None</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td contenteditable="true" class="editable-field" placeholder="Click to add">-</td>
-                            <td><button class="delete-btn" onclick="deleteParticipant(this)">🗑️</button></td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="google-sheets-container">
+                <p class="sheets-info">
+                    📝 <strong>Live Collaborative Participants List</strong> - Anyone can edit this Google Sheet and changes will be visible to everyone in real-time.
+                    <br>
+                    <a href="https://docs.google.com/spreadsheets/d/1aXiqUbVr0bLXdmFrT145pP3zHdQP90B1l_ekv2p4Hv8/edit?gid=0#gid=0" target="_blank" class="sheets-link">
+                        🔗 Open in Google Sheets (Full Edit Mode)
+                    </a>
+                </p>
+                
+                <!-- Embedded Google Sheets -->
+                <div class="sheets-embed">
+                    <iframe 
+                        src="https://docs.google.com/spreadsheets/d/1aXiqUbVr0bLXdmFrT145pP3zHdQP90B1l_ekv2p4Hv8/edit?usp=sharing&amp;single=true&amp;widget=true&amp;headers=false&amp;gid=0"
+                        width="100%" 
+                        height="600" 
+                        frameborder="0" 
+                        scrolling="yes"
+                        title="Participants Google Sheet">
+                    </iframe>
+                </div>
+                
+                <div class="sheets-instructions">
+                    <h3>📋 How to Edit:</h3>
+                    <ul>
+                        <li><strong>Direct editing:</strong> Click on any cell in the sheet above to edit</li>
+                        <li><strong>Full features:</strong> Click "Open in Google Sheets" link above for advanced editing</li>
+                        <li><strong>Real-time sync:</strong> All changes are automatically saved and visible to everyone</li>
+                        <li><strong>Add participants:</strong> Add new rows at the bottom of the sheet</li>
+                        <li><strong>Collaborative:</strong> Multiple people can edit simultaneously</li>
+                    </ul>
+                </div>
             </div>
         </section>
 
