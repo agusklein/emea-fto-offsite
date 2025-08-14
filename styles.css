@@ -209,11 +209,11 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Calendar View */
+/* Calendar View - All 4 days side by side */
 .calendar-view {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(4, 1fr); /* Force 4 equal columns */
+    gap: 1rem; /* Reduced gap to fit better */
     margin-bottom: 2rem;
 }
 
@@ -223,27 +223,28 @@ body {
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-top: 4px solid var(--aws-orange);
+    min-height: 600px; /* Ensure consistent height */
 }
 
 .day-header {
     background: var(--aws-dark-blue);
     color: var(--aws-white);
-    padding: 1.5rem;
+    padding: 1rem; /* Reduced from 1.5rem */
     text-align: center;
 }
 
 .day-header h3 {
-    font-size: 1.4rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem; /* Reduced from 1.4rem */
+    margin-bottom: 0.25rem; /* Reduced from 0.5rem */
 }
 
 .day-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* Reduced from 0.9rem */
     opacity: 0.8;
 }
 
 .time-slot {
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1rem; /* Reduced from 1rem 1.5rem */
     border-bottom: 1px solid #eee;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -1409,6 +1410,39 @@ body {
     
     .sheets-instructions {
         padding: 1rem;
+    }
+    
+    /* Responsive agenda layout */
+    .calendar-view {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+        gap: 0.5rem;
+    }
+    
+    .day-column {
+        min-height: 400px;
+    }
+    
+    .day-header {
+        padding: 0.75rem;
+    }
+    
+    .day-header h3 {
+        font-size: 1rem;
+    }
+    
+    .day-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .time-slot {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .calendar-view {
+        grid-template-columns: 1fr; /* Single column on very small screens */
     }
 }
 
