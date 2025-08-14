@@ -24,17 +24,18 @@ window.addEventListener('load', function() {
 });
 
 function setupSaving() {
-    console.log('🔧 Setting up saving...');
+    console.log('🔧 Setting up ENHANCED saving system...');
     
-    // Save on ANY input change
+    // Save on ANY input change (immediate)
     document.body.addEventListener('input', function(e) {
         if (e.target.contentEditable === 'true') {
             console.log('📝 INPUT DETECTED:', e.target.textContent.substring(0, 50));
+            // Save immediately, no delay
             saveNow();
         }
     });
     
-    // Save when element loses focus
+    // Save when element loses focus (immediate)
     document.body.addEventListener('focusout', function(e) {
         if (e.target.contentEditable === 'true') {
             console.log('👆 FOCUS OUT:', e.target.textContent.substring(0, 50));
@@ -42,150 +43,394 @@ function setupSaving() {
         }
     });
     
-    // Save every 2 seconds automatically
-    setInterval(function() {
-        console.log('⏰ Auto-save...');
-        saveNow();
-    }, 2000);
+    // Save on Enter key (immediate)
+    document.body.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.contentEditable === 'true') {
+            console.log('⏎ Enter pressed');
+            e.preventDefault();
+            e.target.blur();
+            saveNow();
+        }
+    });
     
-    console.log('✅ Saving setup complete');
+    // Save before leaving page (critical)
+    window.addEventListener('beforeunload', function() {
+        console.log('🚪 Page unloading, CRITICAL SAVE...');
+        saveNow();
+        // Force synchronous save
+        const data = localStorage.getItem('website-data');
+        if (data) {
+            localStorage.setItem('website-data-emergency', data);
+        }
+    });
+    
+    // Save on page visibility change (when tab becomes hidden/visible)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            console.log('👁️ Page hidden, saving...');
+            saveNow();
+        } else {
+            console.log('👁️ Page visible, loading latest...');
+            // Small delay to ensure any other tabs have saved
+            setTimeout(loadEverything, 500);
+        }
+    });
+    
+    // Frequent auto-save (every 1 second instead of 2)
+    setInterval(function() {
+        console.log('⏰ Frequent auto-save...');
+        saveNow();
+    }, 1000);
+    
+    // Additional backup save every 5 seconds
+    setInterval(function() {
+        console.log('💾 Backup save...');
+        const mainData = localStorage.getItem('website-data');
+        if (mainData) {
+            localStorage.setItem('website-data-backup', mainData);
+            localStorage.setItem(`website-data-${Date.now()}`, mainData);
+        }
+    }, 5000);
+    
+    console.log('✅ ENHANCED saving system initialized');
 }
 
 function saveNow() {
     console.log('💾 SAVING NOW...');
     
     try {
-        const allData = [];
-        const styleData = {}; // Store CSS styles separately
+        // Create a comprehensive save object
+        const saveData = {
+            timestamp: new Date().toISOString(),
+            version: '3.0', // Increment version for better tracking
+            completeHTML: document.documentElement.outerHTML, // Save entire page HTML
+            agendaHTML: null,
+            editableContent: {},
+            activityStyles: {},
+            participantData: {}
+        };
         
-        // Get ALL editable elements
+        // Save complete agenda section HTML
+        const agendaSection = document.querySelector('.agenda');
+        if (agendaSection) {
+            saveData.agendaHTML = agendaSection.outerHTML;
+            console.log('💾 Saved complete agenda HTML structure');
+        }
+        
+        // Save all editable content with detailed tracking
         const editables = document.querySelectorAll('[contenteditable="true"]');
-        console.log(`Found ${editables.length} editable elements`);
+        console.log(`💾 Found ${editables.length} editable elements`);
         
         editables.forEach(function(element, index) {
-            allData.push({
-                index: index,
+            const uniqueId = generateUniqueId(element, index);
+            saveData.editableContent[uniqueId] = {
                 text: element.textContent || element.innerText || '',
-                tag: element.tagName
-            });
+                html: element.innerHTML || '',
+                tag: element.tagName,
+                className: element.className,
+                parentClass: element.parentElement ? element.parentElement.className : '',
+                index: index
+            };
         });
         
-        // Save activity colors and styles
+        // Save all activity styles with enhanced tracking
         document.querySelectorAll('.time-slot').forEach(function(slot, index) {
-            const computedStyle = window.getComputedStyle(slot);
-            const inlineStyle = slot.style;
+            const uniqueId = `activity_${index}_${slot.dataset.activity || 'unknown'}`;
+            const style = slot.style;
             
-            // Check if there are any custom styles applied
-            if (inlineStyle.borderLeftColor || inlineStyle.borderLeftWidth || inlineStyle.borderLeftStyle || 
-                inlineStyle.backgroundColor || slot.hasAttribute('style')) {
-                
-                styleData[`slot_${index}`] = {
-                    borderLeftColor: inlineStyle.borderLeftColor || '',
-                    borderLeftWidth: inlineStyle.borderLeftWidth || '',
-                    borderLeftStyle: inlineStyle.borderLeftStyle || '',
-                    backgroundColor: inlineStyle.backgroundColor || '',
-                    cssText: inlineStyle.cssText || ''
+            if (style.cssText || style.borderLeftColor || style.backgroundColor) {
+                saveData.activityStyles[uniqueId] = {
+                    cssText: style.cssText,
+                    borderLeftColor: style.borderLeftColor || '',
+                    borderLeftWidth: style.borderLeftWidth || '',
+                    borderLeftStyle: style.borderLeftStyle || '',
+                    backgroundColor: style.backgroundColor || '',
+                    dataActivity: slot.dataset.activity || '',
+                    innerHTML: slot.innerHTML
                 };
-                console.log(`💾 Saved styles for slot ${index}:`, styleData[`slot_${index}`]);
+                console.log(`💾 Saved styles for ${uniqueId}`);
             }
         });
         
-        // Save the complete HTML structure of agenda to preserve new activities
-        const agendaSection = document.querySelector('.agenda');
-        const agendaHTML = agendaSection ? agendaSection.innerHTML : '';
+        // Save participant table data
+        const participantRows = document.querySelectorAll('#participantsBody tr');
+        participantRows.forEach(function(row, index) {
+            const cells = row.querySelectorAll('td[contenteditable="true"]');
+            const rowData = [];
+            cells.forEach(cell => {
+                rowData.push(cell.textContent || '');
+            });
+            saveData.participantData[`row_${index}`] = rowData;
+        });
         
-        // Save to localStorage
-        const saveObject = {
-            saved: new Date().toISOString(),
-            elements: allData,
-            styles: styleData,
-            agendaHTML: agendaHTML
-        };
+        // Save to localStorage with multiple backup keys
+        const jsonData = JSON.stringify(saveData);
+        localStorage.setItem('website-data', jsonData);
+        localStorage.setItem('website-data-backup', jsonData);
+        localStorage.setItem(`website-data-${Date.now()}`, jsonData); // Timestamped backup
         
-        localStorage.setItem('website-data', JSON.stringify(saveObject));
+        // Clean old timestamped backups (keep only last 5)
+        cleanOldBackups();
         
-        console.log(`✅ SAVED ${allData.length} elements, ${Object.keys(styleData).length} styles, and agenda HTML`);
-        showMessage(`💾 Saved ${allData.length} items + ${Object.keys(styleData).length} styles`);
+        console.log(`✅ COMPREHENSIVE SAVE COMPLETE`);
+        console.log(`📊 Saved: ${Object.keys(saveData.editableContent).length} editable elements`);
+        console.log(`📊 Saved: ${Object.keys(saveData.activityStyles).length} activity styles`);
+        console.log(`📊 Saved: ${Object.keys(saveData.participantData).length} participant rows`);
+        console.log(`📊 Data size: ${jsonData.length} characters`);
+        
+        showMessage(`💾 Saved ${Object.keys(saveData.editableContent).length} elements + styles + activities`);
         
         return true;
         
     } catch (error) {
         console.error('❌ SAVE FAILED:', error);
-        showMessage('❌ Save failed');
+        showMessage('❌ Save failed: ' + error.message);
         return false;
     }
 }
 
-function loadEverything() {
-    console.log('📂 LOADING...');
+function generateUniqueId(element, index) {
+    // Create a more unique identifier for elements
+    let id = `${element.tagName.toLowerCase()}_${index}`;
     
-    const saved = localStorage.getItem('website-data');
-    if (!saved) {
+    if (element.id) {
+        id += `_${element.id}`;
+    }
+    
+    if (element.className) {
+        id += `_${element.className.replace(/\s+/g, '_')}`;
+    }
+    
+    // Add parent context for uniqueness
+    if (element.parentElement) {
+        const parent = element.parentElement;
+        if (parent.className) {
+            id += `_parent_${parent.className.replace(/\s+/g, '_')}`;
+        }
+        if (parent.tagName) {
+            id += `_${parent.tagName.toLowerCase()}`;
+        }
+    }
+    
+    return id;
+}
+
+function cleanOldBackups() {
+    const keys = Object.keys(localStorage);
+    const timestampedKeys = keys.filter(key => key.startsWith('website-data-') && key !== 'website-data-backup');
+    
+    if (timestampedKeys.length > 5) {
+        // Sort by timestamp and remove oldest
+        timestampedKeys.sort();
+        const toRemove = timestampedKeys.slice(0, timestampedKeys.length - 5);
+        toRemove.forEach(key => {
+            localStorage.removeItem(key);
+            console.log('🧹 Cleaned old backup:', key);
+        });
+    }
+}
+
+function loadEverything() {
+    console.log('📂 LOADING COMPREHENSIVE DATA...');
+    
+    let savedData = localStorage.getItem('website-data');
+    
+    // Try backup if main data is corrupted or missing
+    if (!savedData) {
+        console.log('📂 Main data not found, trying backup...');
+        savedData = localStorage.getItem('website-data-backup');
+    }
+    
+    if (!savedData) {
         console.log('ℹ️ No saved data found');
         return;
     }
     
     try {
-        const data = JSON.parse(saved);
-        console.log('📂 Found saved data from:', data.saved);
+        const data = JSON.parse(savedData);
+        console.log('📂 Found saved data from:', data.timestamp);
+        console.log('📂 Data version:', data.version || 'legacy');
         
         // Restore agenda HTML structure first (includes new activities)
         if (data.agendaHTML) {
             const agendaSection = document.querySelector('.agenda');
             if (agendaSection) {
-                agendaSection.innerHTML = data.agendaHTML;
-                console.log('📂 Restored agenda HTML structure');
+                // Store current event listeners before replacing HTML
+                console.log('📂 Restoring complete agenda structure...');
+                agendaSection.outerHTML = data.agendaHTML;
                 
-                // Re-attach event listeners after restoring HTML
+                // Re-initialize everything after HTML restoration
                 setTimeout(function() {
-                    setupSaving(); // Re-setup event listeners
-                }, 100);
+                    console.log('🔄 Re-initializing after HTML restoration...');
+                    setupSaving();
+                    initializeDragAndDrop();
+                    addMoveButtons();
+                }, 200);
             }
         }
         
-        // Restore text content
-        const editables = document.querySelectorAll('[contenteditable="true"]');
-        let restored = 0;
-        
-        editables.forEach(function(element, index) {
-            if (data.elements && data.elements[index]) {
-                element.textContent = data.elements[index].text;
-                restored++;
-            }
-        });
-        
-        // Restore styles and colors
-        if (data.styles) {
-            Object.keys(data.styles).forEach(function(key) {
-                const index = key.replace('slot_', '');
-                const slots = document.querySelectorAll('.time-slot');
-                if (slots[index]) {
-                    const styleInfo = data.styles[key];
-                    const slot = slots[index];
-                    
-                    // Apply saved styles
-                    if (styleInfo.cssText) {
-                        slot.style.cssText = styleInfo.cssText;
-                    } else {
-                        if (styleInfo.borderLeftColor) slot.style.borderLeftColor = styleInfo.borderLeftColor;
-                        if (styleInfo.borderLeftWidth) slot.style.borderLeftWidth = styleInfo.borderLeftWidth;
-                        if (styleInfo.borderLeftStyle) slot.style.borderLeftStyle = styleInfo.borderLeftStyle;
-                        if (styleInfo.backgroundColor) slot.style.backgroundColor = styleInfo.backgroundColor;
+        // Restore editable content with enhanced matching
+        if (data.editableContent) {
+            console.log('📂 Restoring editable content...');
+            let restoredCount = 0;
+            
+            Object.keys(data.editableContent).forEach(function(uniqueId) {
+                const contentData = data.editableContent[uniqueId];
+                
+                // Try multiple methods to find the element
+                let element = findElementByUniqueId(uniqueId, contentData);
+                
+                if (element && element.contentEditable === 'true') {
+                    element.textContent = contentData.text;
+                    if (contentData.html && contentData.html !== contentData.text) {
+                        element.innerHTML = contentData.html;
                     }
-                    
-                    console.log(`📂 Restored styles for slot ${index}:`, styleInfo);
+                    restoredCount++;
+                    console.log(`📂 Restored: ${uniqueId} = "${contentData.text.substring(0, 50)}..."`);
                 }
             });
-            console.log(`✅ RESTORED ${Object.keys(data.styles).length} activity styles`);
+            
+            console.log(`✅ Restored ${restoredCount} editable elements`);
         }
         
-        console.log(`✅ RESTORED ${restored} elements`);
-        showMessage(`📂 Loaded ${restored} items + styles + activities`);
+        // Restore activity styles with enhanced matching
+        if (data.activityStyles) {
+            console.log('📂 Restoring activity styles...');
+            let stylesRestored = 0;
+            
+            Object.keys(data.activityStyles).forEach(function(uniqueId) {
+                const styleData = data.activityStyles[uniqueId];
+                
+                // Find activity by data-activity attribute or position
+                let activity = null;
+                if (styleData.dataActivity) {
+                    activity = document.querySelector(`[data-activity="${styleData.dataActivity}"]`);
+                }
+                
+                // Fallback to position-based matching
+                if (!activity) {
+                    const activities = document.querySelectorAll('.time-slot');
+                    const index = parseInt(uniqueId.split('_')[1]);
+                    if (activities[index]) {
+                        activity = activities[index];
+                    }
+                }
+                
+                if (activity) {
+                    if (styleData.cssText) {
+                        activity.style.cssText = styleData.cssText;
+                    } else {
+                        if (styleData.borderLeftColor) activity.style.borderLeftColor = styleData.borderLeftColor;
+                        if (styleData.borderLeftWidth) activity.style.borderLeftWidth = styleData.borderLeftWidth;
+                        if (styleData.borderLeftStyle) activity.style.borderLeftStyle = styleData.borderLeftStyle;
+                        if (styleData.backgroundColor) activity.style.backgroundColor = styleData.backgroundColor;
+                    }
+                    stylesRestored++;
+                    console.log(`📂 Restored styles for: ${uniqueId}`);
+                }
+            });
+            
+            console.log(`✅ Restored ${stylesRestored} activity styles`);
+        }
+        
+        // Restore participant data
+        if (data.participantData) {
+            console.log('📂 Restoring participant data...');
+            const participantRows = document.querySelectorAll('#participantsBody tr');
+            let participantsRestored = 0;
+            
+            Object.keys(data.participantData).forEach(function(rowKey) {
+                const rowIndex = parseInt(rowKey.split('_')[1]);
+                const rowData = data.participantData[rowKey];
+                
+                if (participantRows[rowIndex]) {
+                    const cells = participantRows[rowIndex].querySelectorAll('td[contenteditable="true"]');
+                    rowData.forEach(function(cellText, cellIndex) {
+                        if (cells[cellIndex]) {
+                            cells[cellIndex].textContent = cellText;
+                        }
+                    });
+                    participantsRestored++;
+                }
+            });
+            
+            console.log(`✅ Restored ${participantsRestored} participant rows`);
+        }
+        
+        const loadTime = new Date(data.timestamp).toLocaleString();
+        showMessage(`📂 Loaded complete data from ${loadTime}`, 'success');
+        console.log('✅ COMPREHENSIVE LOAD COMPLETE');
         
     } catch (error) {
         console.error('❌ LOAD FAILED:', error);
-        showMessage('❌ Load failed');
+        showMessage('❌ Load failed: ' + error.message);
+        
+        // Try to recover from backup
+        tryRecoverFromBackup();
     }
+}
+
+function findElementByUniqueId(uniqueId, contentData) {
+    // Try multiple strategies to find the element
+    
+    // Strategy 1: Direct class and tag matching
+    if (contentData.className && contentData.tag) {
+        const elements = document.querySelectorAll(`${contentData.tag.toLowerCase()}.${contentData.className.split(' ').join('.')}`);
+        if (elements[contentData.index]) {
+            return elements[contentData.index];
+        }
+    }
+    
+    // Strategy 2: Parent class context
+    if (contentData.parentClass) {
+        const parentElements = document.querySelectorAll(`.${contentData.parentClass.split(' ').join('.')}`);
+        for (let parent of parentElements) {
+            const childElements = parent.querySelectorAll(`${contentData.tag.toLowerCase()}[contenteditable="true"]`);
+            if (childElements[0]) {
+                return childElements[0];
+            }
+        }
+    }
+    
+    // Strategy 3: All elements of same tag
+    const allElements = document.querySelectorAll(`${contentData.tag.toLowerCase()}[contenteditable="true"]`);
+    if (allElements[contentData.index]) {
+        return allElements[contentData.index];
+    }
+    
+    return null;
+}
+
+function tryRecoverFromBackup() {
+    console.log('🔄 Attempting recovery from backup...');
+    
+    // Try timestamped backups
+    const keys = Object.keys(localStorage);
+    const timestampedKeys = keys.filter(key => key.startsWith('website-data-') && key !== 'website-data-backup');
+    
+    if (timestampedKeys.length > 0) {
+        // Try the most recent backup
+        timestampedKeys.sort().reverse();
+        const latestBackup = localStorage.getItem(timestampedKeys[0]);
+        
+        if (latestBackup) {
+            try {
+                const backupData = JSON.parse(latestBackup);
+                console.log('🔄 Found backup data from:', backupData.timestamp);
+                
+                // Restore from backup
+                localStorage.setItem('website-data', latestBackup);
+                loadEverything();
+                
+                showMessage('🔄 Recovered from backup!', 'success');
+                return;
+            } catch (e) {
+                console.error('❌ Backup recovery failed:', e);
+            }
+        }
+    }
+    
+    showMessage('❌ Could not recover data', 'error');
 }
 
 function showMessage(text) {
