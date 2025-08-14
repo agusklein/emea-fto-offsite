@@ -73,33 +73,45 @@ function saveDataNow() {
     }
     
     saveInProgress = true;
-    console.log('💾 SAVING DATA NOW...');
+    console.log('💾 SAVING ENTIRE WEBSITE DATA NOW...');
     
     try {
         const currentTime = Date.now();
         
-        // Create simple save object
+        // Create comprehensive save object for ENTIRE website
         const saveData = {
             timestamp: new Date().toISOString(),
             saveTime: currentTime,
-            version: 'ultra-simple-v1',
+            version: 'ultra-simple-v2-complete',
             
-            // Save complete page HTML
+            // Save complete page HTML as ultimate backup
             completeHTML: document.documentElement.innerHTML,
             
-            // Save all editable content separately for safety
+            // Save ALL editable content from ENTIRE website
             editableElements: [],
             
-            // Save activity colors separately
+            // Save activity colors from agenda
             activityColors: [],
             
-            // Save participant data separately
-            participantRows: []
+            // Save participant data
+            participantRows: [],
+            
+            // Save header section data
+            headerElements: [],
+            
+            // Save welcome/intro section data
+            welcomeElements: [],
+            
+            // Save Barcelona information section data
+            barcelonaElements: []
         };
         
-        // Capture all editable elements
+        // Capture ALL editable elements from ENTIRE website
         const editables = document.querySelectorAll('[contenteditable="true"]');
+        console.log(`💾 Capturing ${editables.length} editable elements from ENTIRE website...`);
+        
         editables.forEach(function(element, index) {
+            const section = getElementSection(element);
             saveData.editableElements.push({
                 index: index,
                 text: element.textContent || '',
@@ -107,11 +119,48 @@ function saveDataNow() {
                 tagName: element.tagName,
                 className: element.className,
                 id: element.id || '',
-                parentClassName: element.parentElement ? element.parentElement.className : ''
+                parentClassName: element.parentElement ? element.parentElement.className : '',
+                section: section // Track which section this belongs to
             });
         });
         
-        // Capture activity colors
+        // Capture HEADER section elements specifically
+        const headerEditables = document.querySelectorAll('header [contenteditable="true"]');
+        headerEditables.forEach(function(element, index) {
+            saveData.headerElements.push({
+                index: index,
+                text: element.textContent || '',
+                innerHTML: element.innerHTML || '',
+                tagName: element.tagName,
+                className: element.className
+            });
+        });
+        
+        // Capture WELCOME section elements specifically
+        const welcomeEditables = document.querySelectorAll('.welcome [contenteditable="true"]');
+        welcomeEditables.forEach(function(element, index) {
+            saveData.welcomeElements.push({
+                index: index,
+                text: element.textContent || '',
+                innerHTML: element.innerHTML || '',
+                tagName: element.tagName,
+                className: element.className
+            });
+        });
+        
+        // Capture BARCELONA INFO section elements specifically
+        const barcelonaEditables = document.querySelectorAll('.barcelona-info [contenteditable="true"]');
+        barcelonaEditables.forEach(function(element, index) {
+            saveData.barcelonaElements.push({
+                index: index,
+                text: element.textContent || '',
+                innerHTML: element.innerHTML || '',
+                tagName: element.tagName,
+                className: element.className
+            });
+        });
+        
+        // Capture activity colors from agenda
         const activities = document.querySelectorAll('.time-slot');
         activities.forEach(function(activity, index) {
             if (activity.style.cssText) {
@@ -150,19 +199,36 @@ function saveDataNow() {
         cleanOldSaves();
         
         lastSaveTime = currentTime;
-        console.log(`✅ SAVE COMPLETE - ${editables.length} elements, ${activities.length} activities, ${participantRows.length} participants`);
-        showMessage(`💾 Saved ${editables.length} elements`);
+        console.log(`✅ COMPLETE WEBSITE SAVE SUCCESSFUL:`);
+        console.log(`📊 Total editable elements: ${editables.length}`);
+        console.log(`📊 Header elements: ${headerEditables.length}`);
+        console.log(`📊 Welcome elements: ${welcomeEditables.length}`);
+        console.log(`📊 Barcelona elements: ${barcelonaEditables.length}`);
+        console.log(`📊 Activities: ${activities.length}`);
+        console.log(`📊 Participants: ${participantRows.length}`);
+        
+        showMessage(`💾 Saved entire website: ${editables.length} elements`);
         
     } catch (error) {
-        console.error('❌ SAVE FAILED:', error);
+        console.error('❌ COMPLETE WEBSITE SAVE FAILED:', error);
         showMessage('❌ Save failed: ' + error.message);
     } finally {
         saveInProgress = false;
     }
 }
 
+// Helper function to identify which section an element belongs to
+function getElementSection(element) {
+    if (element.closest('header')) return 'HEADER';
+    if (element.closest('.welcome')) return 'WELCOME';
+    if (element.closest('.agenda')) return 'AGENDA';
+    if (element.closest('.participants')) return 'PARTICIPANTS';
+    if (element.closest('.barcelona-info')) return 'BARCELONA';
+    return 'OTHER';
+}
+
 function loadData() {
-    console.log('📂 LOADING DATA...');
+    console.log('📂 LOADING ENTIRE WEBSITE DATA...');
     
     let savedData = localStorage.getItem('ultra-simple-data');
     
@@ -192,22 +258,23 @@ function loadData() {
     try {
         const data = JSON.parse(savedData);
         console.log('📂 Found saved data from:', data.timestamp);
+        console.log('📂 Data version:', data.version);
         
-        // Restore editable elements
+        // Restore ALL editable elements from ENTIRE website
         if (data.editableElements) {
             const currentEditables = document.querySelectorAll('[contenteditable="true"]');
-            console.log(`📂 Restoring ${data.editableElements.length} editable elements...`);
+            console.log(`📂 Restoring ${data.editableElements.length} editable elements from ENTIRE website...`);
             
             data.editableElements.forEach(function(savedElement) {
-                // Find matching element
+                // Find matching element using multiple strategies
                 let targetElement = null;
                 
-                // Try by index first
+                // Strategy 1: Try by index first (most reliable for simple approach)
                 if (currentEditables[savedElement.index]) {
                     targetElement = currentEditables[savedElement.index];
                 }
                 
-                // Try by class and tag if index doesn't work
+                // Strategy 2: Try by class and tag if index doesn't work
                 if (!targetElement && savedElement.className) {
                     const candidates = document.querySelectorAll(`${savedElement.tagName.toLowerCase()}.${savedElement.className.split(' ').join('.')}`);
                     if (candidates.length > 0) {
@@ -215,15 +282,66 @@ function loadData() {
                     }
                 }
                 
+                // Strategy 3: Try by section-specific matching
+                if (!targetElement && savedElement.section) {
+                    const sectionElements = getSectionEditables(savedElement.section);
+                    if (sectionElements.length > 0) {
+                        // Find by tag within section
+                        const sectionCandidates = sectionElements.filter(el => el.tagName === savedElement.tagName);
+                        if (sectionCandidates.length > 0) {
+                            targetElement = sectionCandidates[0];
+                        }
+                    }
+                }
+                
                 // Restore content
                 if (targetElement) {
                     targetElement.textContent = savedElement.text;
-                    console.log(`📂 Restored: "${savedElement.text.substring(0, 30)}..."`);
+                    console.log(`📂 Restored ${savedElement.section || 'UNKNOWN'}: "${savedElement.text.substring(0, 30)}..."`);
                 }
             });
         }
         
-        // Restore activity colors
+        // Restore HEADER section specifically
+        if (data.headerElements) {
+            console.log(`📂 Restoring ${data.headerElements.length} header elements...`);
+            const currentHeaderElements = document.querySelectorAll('header [contenteditable="true"]');
+            
+            data.headerElements.forEach(function(savedElement, index) {
+                if (currentHeaderElements[index]) {
+                    currentHeaderElements[index].textContent = savedElement.text;
+                    console.log(`📂 Restored HEADER: "${savedElement.text}"`);
+                }
+            });
+        }
+        
+        // Restore WELCOME section specifically
+        if (data.welcomeElements) {
+            console.log(`📂 Restoring ${data.welcomeElements.length} welcome elements...`);
+            const currentWelcomeElements = document.querySelectorAll('.welcome [contenteditable="true"]');
+            
+            data.welcomeElements.forEach(function(savedElement, index) {
+                if (currentWelcomeElements[index]) {
+                    currentWelcomeElements[index].textContent = savedElement.text;
+                    console.log(`📂 Restored WELCOME: "${savedElement.text.substring(0, 30)}..."`);
+                }
+            });
+        }
+        
+        // Restore BARCELONA INFO section specifically
+        if (data.barcelonaElements) {
+            console.log(`📂 Restoring ${data.barcelonaElements.length} Barcelona info elements...`);
+            const currentBarcelonaElements = document.querySelectorAll('.barcelona-info [contenteditable="true"]');
+            
+            data.barcelonaElements.forEach(function(savedElement, index) {
+                if (currentBarcelonaElements[index]) {
+                    currentBarcelonaElements[index].textContent = savedElement.text;
+                    console.log(`📂 Restored BARCELONA: "${savedElement.text.substring(0, 30)}..."`);
+                }
+            });
+        }
+        
+        // Restore activity colors from agenda
         if (data.activityColors) {
             console.log(`📂 Restoring ${data.activityColors.length} activity colors...`);
             const currentActivities = document.querySelectorAll('.time-slot');
@@ -267,12 +385,30 @@ function loadData() {
         }
         
         const loadTime = new Date(data.timestamp).toLocaleString();
-        showMessage(`📂 Loaded data from ${loadTime}`);
-        console.log('✅ LOAD COMPLETE');
+        showMessage(`📂 Loaded entire website from ${loadTime}`);
+        console.log('✅ COMPLETE WEBSITE LOAD SUCCESSFUL');
         
     } catch (error) {
-        console.error('❌ LOAD FAILED:', error);
+        console.error('❌ COMPLETE WEBSITE LOAD FAILED:', error);
         showMessage('❌ Load failed: ' + error.message);
+    }
+}
+
+// Helper function to get editable elements from specific sections
+function getSectionEditables(section) {
+    switch (section) {
+        case 'HEADER':
+            return Array.from(document.querySelectorAll('header [contenteditable="true"]'));
+        case 'WELCOME':
+            return Array.from(document.querySelectorAll('.welcome [contenteditable="true"]'));
+        case 'AGENDA':
+            return Array.from(document.querySelectorAll('.agenda [contenteditable="true"]'));
+        case 'PARTICIPANTS':
+            return Array.from(document.querySelectorAll('.participants [contenteditable="true"]'));
+        case 'BARCELONA':
+            return Array.from(document.querySelectorAll('.barcelona-info [contenteditable="true"]'));
+        default:
+            return [];
     }
 }
 
@@ -291,24 +427,68 @@ function cleanOldSaves() {
 }
 
 function testSystem() {
-    console.log('🧪 TESTING ULTRA-SIMPLE SYSTEM...');
+    console.log('🧪 TESTING ULTRA-SIMPLE SYSTEM FOR ENTIRE WEBSITE...');
     
-    const editables = document.querySelectorAll('[contenteditable="true"]');
-    console.log(`🧪 Found ${editables.length} editable elements`);
+    // Count editable elements in each section
+    const headerEditables = document.querySelectorAll('header [contenteditable="true"]');
+    const welcomeEditables = document.querySelectorAll('.welcome [contenteditable="true"]');
+    const agendaEditables = document.querySelectorAll('.agenda [contenteditable="true"]');
+    const participantEditables = document.querySelectorAll('.participants [contenteditable="true"]');
+    const barcelonaEditables = document.querySelectorAll('.barcelona-info [contenteditable="true"]');
+    const totalEditables = document.querySelectorAll('[contenteditable="true"]');
+    
+    console.log('🧪 EDITABLE ELEMENTS BY SECTION:');
+    console.log(`📋 Header: ${headerEditables.length} elements`);
+    console.log(`🏠 Welcome: ${welcomeEditables.length} elements`);
+    console.log(`📅 Agenda: ${agendaEditables.length} elements`);
+    console.log(`👥 Participants: ${participantEditables.length} elements`);
+    console.log(`🏙️ Barcelona: ${barcelonaEditables.length} elements`);
+    console.log(`📊 TOTAL: ${totalEditables.length} elements`);
     
     // Test save
+    console.log('🧪 Testing save functionality...');
     saveDataNow();
     
     // Check if data was saved
     const saved = localStorage.getItem('ultra-simple-data');
     if (saved) {
         const data = JSON.parse(saved);
-        console.log(`✅ TEST PASSED - ${data.editableElements.length} elements saved`);
-        showMessage('✅ System test passed!');
+        console.log('🧪 SAVE TEST RESULTS:');
+        console.log(`✅ Total elements saved: ${data.editableElements.length}`);
+        console.log(`✅ Header elements saved: ${data.headerElements ? data.headerElements.length : 0}`);
+        console.log(`✅ Welcome elements saved: ${data.welcomeElements ? data.welcomeElements.length : 0}`);
+        console.log(`✅ Barcelona elements saved: ${data.barcelonaElements ? data.barcelonaElements.length : 0}`);
+        console.log(`✅ Activity colors saved: ${data.activityColors.length}`);
+        console.log(`✅ Participant rows saved: ${data.participantRows.length}`);
+        
+        showMessage('✅ Complete website system test passed!');
+        console.log('🎉 ENTIRE WEBSITE SYSTEM TEST PASSED!');
     } else {
-        console.log('❌ TEST FAILED');
+        console.log('❌ SYSTEM TEST FAILED - No data saved');
         showMessage('❌ System test failed!');
     }
+    
+    // Test section identification
+    console.log('🧪 Testing section identification...');
+    const testElements = [
+        { selector: 'header [contenteditable="true"]', expectedSection: 'HEADER' },
+        { selector: '.welcome [contenteditable="true"]', expectedSection: 'WELCOME' },
+        { selector: '.agenda [contenteditable="true"]', expectedSection: 'AGENDA' },
+        { selector: '.participants [contenteditable="true"]', expectedSection: 'PARTICIPANTS' },
+        { selector: '.barcelona-info [contenteditable="true"]', expectedSection: 'BARCELONA' }
+    ];
+    
+    testElements.forEach(function(test) {
+        const element = document.querySelector(test.selector);
+        if (element) {
+            const detectedSection = getElementSection(element);
+            if (detectedSection === test.expectedSection) {
+                console.log(`✅ Section detection: ${test.expectedSection} - CORRECT`);
+            } else {
+                console.log(`❌ Section detection: Expected ${test.expectedSection}, got ${detectedSection}`);
+            }
+        }
+    });
 }
 
 function showMessage(text, type = 'success') {
