@@ -1322,6 +1322,12 @@ body {
     border: none;
     width: 100%;
     min-height: 600px;
+    /* Prevent iframe from causing page scroll issues */
+    pointer-events: auto;
+    overflow: hidden;
+    /* Ensure iframe doesn't interfere with page scroll */
+    position: relative;
+    z-index: 1;
 }
 
 .sheets-instructions {

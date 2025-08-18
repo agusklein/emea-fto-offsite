@@ -14,6 +14,9 @@ let syncInProgress = false;
 window.addEventListener('load', function() {
     console.log('✅ Page loaded completely');
     
+    // Initialize scroll position preservation
+    initializeScrollPreservation();
+    
     // Initialize real-time sync first
     setTimeout(initializeRealTimeSync, 1000);
     
@@ -29,6 +32,83 @@ window.addEventListener('load', function() {
     // Test the system
     setTimeout(testSystem, 2000);
 });
+
+// Scroll position preservation system
+function initializeScrollPreservation() {
+    console.log('📍 Initializing scroll position preservation...');
+    
+    let lastScrollPosition = 0;
+    let scrollPreservationActive = false;
+    
+    // Track scroll position
+    window.addEventListener('scroll', function() {
+        if (!scrollPreservationActive) {
+            lastScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        }
+    });
+    
+    // Detect when user is in participants section
+    const participantsSection = document.querySelector('.participants');
+    if (participantsSection) {
+        const iframe = participantsSection.querySelector('iframe');
+        
+        if (iframe) {
+            // Prevent scroll jumping when iframe loads or reloads
+            iframe.addEventListener('load', function() {
+                console.log('📍 Iframe loaded, preserving scroll position');
+                scrollPreservationActive = true;
+                
+                // Small delay to let iframe settle
+                setTimeout(function() {
+                    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    // If we jumped to top unexpectedly, restore position
+                    if (currentScroll < 50 && lastScrollPosition > 100) {
+                        console.log('📍 Restoring scroll position from', currentScroll, 'to', lastScrollPosition);
+                        window.scrollTo(0, lastScrollPosition);
+                    }
+                    
+                    scrollPreservationActive = false;
+                }, 200);
+            });
+            
+            // Also handle iframe focus events
+            iframe.addEventListener('focus', function() {
+                console.log('📍 Iframe focused, tracking scroll position');
+                lastScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            });
+        }
+        
+        // Track clicks in participants section
+        participantsSection.addEventListener('click', function() {
+            console.log('📍 Participants section clicked, tracking scroll position');
+            lastScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        });
+    }
+    
+    // Global scroll jump prevention
+    let scrollJumpPrevention = false;
+    
+    // Monitor for unexpected scroll jumps
+    setInterval(function() {
+        if (!scrollJumpPrevention && !scrollPreservationActive) {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // If we suddenly jumped to top while user was scrolled down
+            if (currentScroll === 0 && lastScrollPosition > 200) {
+                console.log('📍 Detected unexpected scroll jump to top, restoring position');
+                scrollJumpPrevention = true;
+                window.scrollTo(0, lastScrollPosition);
+                
+                setTimeout(function() {
+                    scrollJumpPrevention = false;
+                }, 1000);
+            }
+        }
+    }, 500);
+    
+    console.log('✅ Scroll position preservation initialized');
+}
 
 function initializeRealTimeSync() {
     console.log('🔄 Initializing simple real-time synchronization...');
@@ -114,6 +194,12 @@ function loadFromServer() {
 
 function checkForUpdates() {
     if (!syncEnabled || syncInProgress) {
+        return;
+    }
+    
+    // Skip sync if user is in participants section to avoid scrolling issues
+    if (isUserInParticipantsSection()) {
+        console.log('🔄 Skipping sync check - user in participants section');
         return;
     }
     
@@ -249,10 +335,14 @@ function setupSimpleSaving() {
         saveDataNow();
     });
     
-    // Simple auto-save every 2 seconds
+    // Simple auto-save every 2 seconds - BUT SKIP if user is in participants section
     setInterval(function() {
-        console.log('⏰ AUTO-SAVE INTERVAL');
-        saveDataNow();
+        if (!isUserInParticipantsSection()) {
+            console.log('⏰ AUTO-SAVE INTERVAL');
+            saveDataNow();
+        } else {
+            console.log('⏰ AUTO-SAVE SKIPPED - User in participants section');
+        }
     }, 2000);
     
     console.log('✅ Ultra-simple saving setup complete');
@@ -375,6 +465,77 @@ function saveDataNow() {
         showMessage('❌ Save failed: ' + error.message);
     } finally {
         saveInProgress = false;
+    }
+}
+
+// Helper function to check if user is currently interacting with participants section
+function isUserInParticipantsSection() {
+    // Check if the participants section is currently visible in viewport
+    const participantsSection = document.querySelector('.participants');
+    if (!participantsSection) return false;
+    
+    const rect = participantsSection.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    
+    // Check if participants section is in viewport (at least 50% visible)
+    const isVisible = rect.top < windowHeight * 0.5 && rect.bottom > windowHeight * 0.5;
+    
+    // Also check if user recently interacted with the iframe
+    const iframe = participantsSection.querySelector('iframe');
+    if (iframe && isVisible) {
+        // If iframe is focused or user recently clicked in participants area
+        const activeElement = document.activeElement;
+        if (activeElement === iframe || participantsSection.contains(activeElement)) {
+            return true;
+        }
+        
+        // Check if user recently scrolled to or clicked in participants section
+        const lastInteractionTime = window.lastParticipantsInteraction || 0;
+        const timeSinceInteraction = Date.now() - lastInteractionTime;
+        if (timeSinceInteraction < 10000) { // 10 seconds grace period
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Track user interactions with participants section
+function trackParticipantsInteraction() {
+    const participantsSection = document.querySelector('.participants');
+    if (participantsSection) {
+        // Track clicks in participants section
+        participantsSection.addEventListener('click', function() {
+            window.lastParticipantsInteraction = Date.now();
+            console.log('👥 User interacted with participants section');
+        });
+        
+        // Track when iframe gets focus
+        const iframe = participantsSection.querySelector('iframe');
+        if (iframe) {
+            iframe.addEventListener('focus', function() {
+                window.lastParticipantsInteraction = Date.now();
+                console.log('👥 User focused on Google Sheets iframe');
+            });
+            
+            // Track iframe load events that might cause scrolling
+            iframe.addEventListener('load', function() {
+                console.log('👥 Google Sheets iframe loaded');
+                // Prevent any automatic scrolling after iframe loads
+                setTimeout(function() {
+                    // Restore scroll position if it was changed
+                    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                    if (currentScroll < 100) {
+                        // If user was scrolled down but got jumped to top, restore position
+                        const participantsTop = participantsSection.offsetTop;
+                        if (participantsTop > 100) {
+                            window.scrollTo(0, participantsTop - 100);
+                            console.log('👥 Restored scroll position after iframe load');
+                        }
+                    }
+                }, 100);
+            });
+        }
     }
 }
 
@@ -661,6 +822,9 @@ function initializeFeatures() {
     
     // Initialize buttons
     initializeButtons();
+    
+    // Track participants section interactions to prevent scrolling issues
+    trackParticipantsInteraction();
     
     // Add delete and move buttons to all existing activities
     setTimeout(function() {

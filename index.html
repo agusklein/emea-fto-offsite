@@ -300,8 +300,10 @@
                         scrolling="no"
                         allowfullscreen="true"
                         title="Participants Google Sheet"
-                        onload="this.style.pointerEvents='auto';"
-                        style="pointer-events: auto; overflow: hidden;">
+                        loading="lazy"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                        onload="console.log('📊 Google Sheets iframe loaded successfully');"
+                        style="pointer-events: auto; overflow: hidden; display: block;">
                     </iframe>
                     
                     <!-- Fallback message if iframe doesn't load -->
