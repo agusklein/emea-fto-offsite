@@ -80,7 +80,6 @@
                         <span class="day-subtitle" contenteditable="true">Tuesday - Arrival Day</span>
                     </div>
                     <div class="time-slot arrival" data-category="arrival" data-activity="arrival-1">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">Afternoon (before 8pm)</div>
                         <div class="session">
                             <h4 contenteditable="true">Arrival to Barcelona</h4>
@@ -88,7 +87,6 @@
                         </div>
                     </div>
                     <div class="time-slot social" data-category="social" data-activity="dinner-1">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">8:00 PM - 10:00 PM</div>
                         <div class="session">
                             <h4 contenteditable="true">Welcome Dinner</h4>
@@ -104,7 +102,6 @@
                         <span class="day-subtitle" contenteditable="true">Wednesday - Main Sessions</span>
                     </div>
                     <div class="time-slot meeting" data-category="meeting" data-activity="welcome-intro">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">9:00 AM - 9:30 AM</div>
                         <div class="session">
                             <h4 contenteditable="true">Welcome & Intro</h4>
@@ -112,7 +109,6 @@
                         </div>
                     </div>
                     <div class="time-slot meeting" data-category="meeting" data-activity="team-catchup">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">9:30 AM - 12:00 PM</div>
                         <div class="session">
                             <h4 contenteditable="true">Team Catch Up and Updates</h4>
@@ -121,7 +117,6 @@
                         </div>
                     </div>
                     <div class="time-slot break" data-category="break" data-activity="lunch-1">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">12:00 PM - 1:00 PM</div>
                         <div class="session">
                             <h4 contenteditable="true">Lunch</h4>
@@ -129,7 +124,6 @@
                         </div>
                     </div>
                     <div class="time-slot meeting" data-category="meeting" data-activity="tech-goals">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">1:15 PM - 2:45 PM</div>
                         <div class="session">
                             <h4 contenteditable="true">Tech Goals</h4>
@@ -137,7 +131,6 @@
                         </div>
                     </div>
                     <div class="time-slot break" data-category="break" data-activity="break-1">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">2:45 PM - 3:00 PM</div>
                         <div class="session">
                             <h4 contenteditable="true">Break</h4>
@@ -145,7 +138,6 @@
                         </div>
                     </div>
                     <div class="time-slot meeting" data-category="meeting" data-activity="team-culture">
-                        <button class="delete-activity-btn" onclick="deleteActivity(this)" title="Delete Activity">🗑️</button>
                         <div class="time" contenteditable="true">3:00 PM - 5:00 PM</div>
                         <div class="session">
                             <h4 contenteditable="true">Team Culture</h4>
@@ -389,15 +381,15 @@
     <script src="script.js"></script>
     
     <script>
-        // Simple real-time sync configuration using GitHub Gist
+        // Real-time sync disabled for clean interface
         window.SYNC_CONFIG = {
-            enabled: true,
+            enabled: false,
             gistId: 'emea-fto-offsite-sync',
-            pollInterval: 5000, // Check for updates every 5 seconds
+            pollInterval: 5000,
             apiUrl: 'https://api.github.com/gists'
         };
         
-        console.log('🔄 Real-time sync configuration loaded');
+        console.log('🔄 Real-time sync disabled for clean interface');
     </script>
 </body>
 </html>
