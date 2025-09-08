@@ -33,91 +33,32 @@ window.addEventListener('load', function() {
     setTimeout(testSystem, 2000);
 });
 
-// Scroll position preservation system - ENHANCED
+// Scroll position preservation system - MINIMAL
 function initializeScrollPreservation() {
-    console.log('📍 Initializing ENHANCED scroll position preservation...');
+    console.log('📍 Initializing minimal scroll preservation...');
     
-    let lastScrollPosition = 0;
-    let scrollPreservationActive = false;
-    let userInParticipantsSection = false;
-    
-    // Track scroll position continuously
-    window.addEventListener('scroll', function() {
-        if (!scrollPreservationActive) {
-            lastScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-        }
-    });
-    
-    // Detect when user is in participants section
     const participantsSection = document.querySelector('.participants');
     if (participantsSection) {
-        const iframe = participantsSection.querySelector('iframe');
-        
-        // Enhanced iframe handling
-        if (iframe) {
-            // Prevent scroll jumping when iframe loads
-            iframe.addEventListener('load', function() {
-                console.log('📍 Iframe loaded - PREVENTING scroll jump');
-                scrollPreservationActive = true;
-                
-                // Longer delay to ensure iframe is fully settled
-                setTimeout(function() {
-                    scrollPreservationActive = false;
-                }, 1000);
-            });
-            
-            // Track iframe interactions
-            iframe.addEventListener('focus', function() {
-                console.log('📍 Iframe focused - user interacting with Google Sheets');
-                userInParticipantsSection = true;
-                window.lastParticipantsInteraction = Date.now();
-            });
-            
-            iframe.addEventListener('blur', function() {
-                console.log('📍 Iframe blurred - user left Google Sheets');
-                setTimeout(function() {
-                    userInParticipantsSection = false;
-                }, 2000); // Grace period
-            });
-        }
-        
-        // Enhanced participants section tracking
+        // Mark user as in participants section when they interact with it
         participantsSection.addEventListener('mouseenter', function() {
-            console.log('📍 Mouse entered participants section');
-            userInParticipantsSection = true;
+            window.userInGoogleSheets = true;
             window.lastParticipantsInteraction = Date.now();
-        });
-        
-        participantsSection.addEventListener('mouseleave', function() {
-            console.log('📍 Mouse left participants section');
-            setTimeout(function() {
-                userInParticipantsSection = false;
-            }, 3000); // Longer grace period
         });
         
         participantsSection.addEventListener('click', function() {
-            console.log('📍 Participants section clicked');
-            userInParticipantsSection = true;
+            window.userInGoogleSheets = true;
             window.lastParticipantsInteraction = Date.now();
+        });
+        
+        // Clear flag after user leaves
+        participantsSection.addEventListener('mouseleave', function() {
+            setTimeout(function() {
+                window.userInGoogleSheets = false;
+            }, 5000);
         });
     }
     
-    // COMPLETELY DISABLE scroll jump monitoring when user is in participants section
-    setInterval(function() {
-        if (userInParticipantsSection || scrollPreservationActive) {
-            return; // Skip all scroll monitoring
-        }
-        
-        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Only restore if we detect an unexpected jump to top
-        if (currentScroll === 0 && lastScrollPosition > 300) {
-            console.log('📍 EMERGENCY: Restoring scroll position from unexpected jump');
-            window.scrollTo(0, lastScrollPosition);
-        }
-    }, 1000); // Less frequent monitoring
-    
-    console.log('✅ ENHANCED scroll position preservation initialized');
+    console.log('✅ Minimal scroll preservation initialized');
 }
 
 function initializeRealTimeSync() {
@@ -303,25 +244,26 @@ function setupSimpleSaving() {
         saveDataNow();
     });
     
-    // Enhanced auto-save with better participants section detection
+    // Minimal auto-save - completely avoid Google Sheets
     setInterval(function() {
-        // Multiple checks to avoid saving during Google Sheets interaction
-        if (isUserInParticipantsSection() || 
-            window.lastParticipantsInteraction && (Date.now() - window.lastParticipantsInteraction < 15000)) {
-            console.log('⏰ AUTO-SAVE SKIPPED - User in participants section or recent interaction');
-            return;
+        if (window.userInGoogleSheets || 
+            (window.lastParticipantsInteraction && (Date.now() - window.lastParticipantsInteraction < 30000))) {
+            return; // Skip completely
         }
-        
-        console.log('⏰ AUTO-SAVE INTERVAL');
         saveDataNow();
-    }, 5000); // Increased interval to 5 seconds
+    }, 10000); // Much longer interval
     
     console.log('✅ Ultra-simple saving setup complete');
 }
 
 function saveDataNow() {
+    // Completely skip save if user is in Google Sheets
+    if (window.userInGoogleSheets || 
+        (window.lastParticipantsInteraction && (Date.now() - window.lastParticipantsInteraction < 30000))) {
+        return;
+    }
+    
     if (saveInProgress) {
-        console.log('⏳ Save already in progress, skipping...');
         return;
     }
     
@@ -439,43 +381,10 @@ function saveDataNow() {
     }
 }
 
-// Enhanced function to check if user is currently interacting with participants section
+// Minimal function to check if user is in participants section
 function isUserInParticipantsSection() {
-    // Check if the participants section is currently visible in viewport
-    const participantsSection = document.querySelector('.participants');
-    if (!participantsSection) return false;
-    
-    const rect = participantsSection.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    
-    // Check if participants section is significantly visible in viewport
-    const isVisible = rect.top < windowHeight * 0.7 && rect.bottom > windowHeight * 0.3;
-    
-    // Check if user recently interacted with the participants section
-    const lastInteractionTime = window.lastParticipantsInteraction || 0;
-    const timeSinceInteraction = Date.now() - lastInteractionTime;
-    const recentInteraction = timeSinceInteraction < 15000; // 15 seconds grace period
-    
-    // Check if iframe is focused or active
-    const iframe = participantsSection.querySelector('iframe');
-    const activeElement = document.activeElement;
-    const iframeActive = iframe && (activeElement === iframe || participantsSection.contains(activeElement));
-    
-    // Check if user's mouse is over the participants section
-    const mouseOverParticipants = participantsSection.matches(':hover');
-    
-    const result = isVisible && (recentInteraction || iframeActive || mouseOverParticipants);
-    
-    if (result) {
-        console.log('👥 User detected in participants section:', {
-            visible: isVisible,
-            recentInteraction: recentInteraction,
-            iframeActive: iframeActive,
-            mouseOver: mouseOverParticipants
-        });
-    }
-    
-    return result;
+    return window.userInGoogleSheets || 
+           (window.lastParticipantsInteraction && (Date.now() - window.lastParticipantsInteraction < 30000));
 }
 
 // Track user interactions with participants section
