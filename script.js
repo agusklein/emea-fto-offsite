@@ -58,6 +58,41 @@ function initializeScrollPreservation() {
         });
     }
     
+    // Store scroll position before any contenteditable interaction
+    let savedScrollPosition = 0;
+    
+    // Save scroll position when starting to edit any contenteditable element
+    document.addEventListener('focusin', function(e) {
+        if (e.target.contentEditable === 'true') {
+            savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            console.log('📍 Saved scroll position:', savedScrollPosition);
+        }
+    });
+    
+    // Prevent scroll jumping during editing
+    document.addEventListener('input', function(e) {
+        if (e.target.contentEditable === 'true') {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            if (Math.abs(currentScroll - savedScrollPosition) > 50) {
+                window.scrollTo(0, savedScrollPosition);
+                console.log('📍 Restored scroll position during editing');
+            }
+        }
+    });
+    
+    // Also prevent jumping on blur
+    document.addEventListener('focusout', function(e) {
+        if (e.target.contentEditable === 'true') {
+            setTimeout(() => {
+                const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                if (Math.abs(currentScroll - savedScrollPosition) > 50) {
+                    window.scrollTo(0, savedScrollPosition);
+                    console.log('📍 Restored scroll position after editing');
+                }
+            }, 10);
+        }
+    });
+    
     console.log('✅ Minimal scroll preservation initialized');
 }
 
@@ -232,8 +267,6 @@ function setupSimpleSaving() {
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.target.contentEditable === 'true') {
             console.log('⏎ ENTER PRESSED');
-            e.preventDefault();
-            e.target.blur();
             saveDataNow();
         }
     });
