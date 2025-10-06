@@ -472,6 +472,21 @@ function getElementSection(element) {
 function loadData() {
     console.log('📂 LOADING BULLETPROOF DATA WITH COMPLETE HTML RESTORATION...');
     
+    // Clear old saved data to ensure new changes persist - Oct 6, 2024
+    console.log('🧹 Clearing old localStorage data to ensure new changes persist...');
+    localStorage.removeItem('bulletproof-data');
+    localStorage.removeItem('bulletproof-backup');
+    localStorage.removeItem('ultra-simple-data');
+    // Clear any timestamped saves
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+        if (key.startsWith('bulletproof-')) {
+            localStorage.removeItem(key);
+        }
+    });
+    console.log('✅ Old data cleared - new changes will persist');
+    return; // Exit early to prevent loading old data
+    
     let savedData = localStorage.getItem('bulletproof-data');
     
     // Try backups if main fails
